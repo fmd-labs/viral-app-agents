@@ -13,7 +13,7 @@
       "name": "viral-app",
       "source": "./plugins/viral-app",
       "description": "Connect viral.app to your agent: OAuth MCP server with 50+ tools for social analytics, account/video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube lookups, plus a usage skill.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "FMD Labs",
         "url": "https://viral.app"

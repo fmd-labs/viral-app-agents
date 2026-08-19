@@ -1,0 +1,38 @@
+{
+  "name": "viral-app",
+  "version": "0.1.1",
+  "description": "Connect viral.app to your agent: OAuth MCP server with 50+ tools for social analytics, account/video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube lookups, plus a usage skill.",
+  "author": {
+    "name": "FMD Labs",
+    "url": "https://viral.app"
+  },
+  "homepage": "https://viral.app/app/org/api/agents",
+  "repository": "https://github.com/fmd-labs/viral-app-agents",
+  "license": "MIT",
+  "keywords": [
+    "viral.app",
+    "mcp",
+    "social-analytics",
+    "tiktok",
+    "instagram",
+    "youtube",
+    "ugc",
+    "creator-marketing"
+  ],
+  "interface": {
+    "displayName": "viral.app",
+    "shortDescription": "UGC performance tracking, creator campaigns, and live social data",
+    "longDescription": "Query tracked account and video analytics, manage tracking, tags and tag workflows, read Creator Hub campaigns, and fetch live TikTok, Instagram, YouTube, and Facebook data through the viral.app MCP server. Authentication runs through OAuth in your browser; credit-spending tools quote their cost before executing.",
+    "developerName": "FMD Labs",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://viral.app",
+    "privacyPolicyURL": "https://viral.app/legal/privacy",
+    "termsOfServiceURL": "https://viral.app/legal/terms",
+    "defaultPrompt": [
+      "Show my top tracked accounts and videos from the last 7 days",
+      "Which tracked accounts stopped posting recently?",
+      "How many views does this video have right now?"
+    ]
+  }
+}

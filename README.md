@@ -28,6 +28,15 @@ https://viral.app/api/mcp
 ### Codex CLI
 
 ```bash
+codex plugin marketplace add fmd-labs/viral-app-agents
+codex plugin add viral-app@viral-app
+```
+
+Or interactively: `/plugins` in the Codex TUI. Start a new session afterwards, then authenticate with `codex mcp login viral_app`.
+
+If you only want the MCP server without the plugin:
+
+```bash
 codex mcp add viral_app --url https://viral.app/api/mcp
 codex mcp login viral_app
 ```
@@ -61,7 +70,8 @@ Point the client at `https://viral.app/api/mcp` with streamable HTTP and OAuth. 
 | Path | Purpose |
 | --- | --- |
 | `.claude-plugin/marketplace.json` | Claude Code marketplace catalog for this repo |
-| `plugins/viral-app/` | The viral.app plugin: MCP server config plus the `viral-app-mcp` skill |
+| `.agents/plugins/marketplace.json` | Codex marketplace catalog for this repo |
+| `plugins/viral-app/` | The viral.app plugin: shared MCP server config and `viral-app-mcp` skill, with manifests for both Claude Code and Codex |
 
 ## Auth and security
 
