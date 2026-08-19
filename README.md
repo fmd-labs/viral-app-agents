@@ -9,11 +9,11 @@ The MCP server lives at `https://viral.app/api/mcp` (streamable HTTP, OAuth). Yo
 ### Claude Code
 
 ```bash
-claude plugin marketplace add fmd-labs/viral-app-agents
+claude plugin marketplace add https://github.com/fmd-labs/viral-app-agents
 claude plugin install viral-app@viral-app
 ```
 
-Or interactively: `/plugin marketplace add fmd-labs/viral-app-agents`, then `/plugin install viral-app`. Afterwards run `/mcp`, pick `viral_app`, and authenticate in the browser.
+Or interactively: `/plugin marketplace add https://github.com/fmd-labs/viral-app-agents`, then `/plugin install viral-app`. Afterwards run `/mcp`, pick `viral_app`, and authenticate in the browser. The `fmd-labs/viral-app-agents` shorthand also works if you have GitHub SSH access.
 
 ### Claude.ai and Claude Desktop
 
@@ -28,7 +28,7 @@ https://viral.app/api/mcp
 ### Codex CLI
 
 ```bash
-codex plugin marketplace add fmd-labs/viral-app-agents
+codex plugin marketplace add https://github.com/fmd-labs/viral-app-agents
 codex plugin add viral-app@viral-app
 ```
 
