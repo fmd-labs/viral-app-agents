@@ -34,6 +34,8 @@ codex plugin add viral-app@viral-app
 
 Or interactively: `/plugins` in the Codex TUI. Start a new session afterwards, then authenticate with `codex mcp login viral_app`.
 
+Requires Codex CLI 0.147 or newer. Older versions fail the OAuth login with an "Authorization server response missing required issuer" error (a Codex bug fixed in 0.147.0); update with `npm install -g @openai/codex@latest` and retry.
+
 If you only want the MCP server without the plugin:
 
 ```bash
