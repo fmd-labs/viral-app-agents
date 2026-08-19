@@ -1,0 +1,23 @@
+{
+  "name": "viral-app",
+  "version": "0.1.0",
+  "description": "Connect viral.app to your agent: OAuth MCP server with 50+ tools for social analytics, account/video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube lookups, plus a usage skill.",
+  "author": {
+    "name": "FMD Labs",
+    "url": "https://viral.app"
+  },
+  "homepage": "https://viral.app/app/org/api/agents",
+  "repository": "https://github.com/fmd-labs/viral-app-agents",
+  "license": "MIT",
+  "keywords": [
+    "viral.app",
+    "mcp",
+    "social-analytics",
+    "tiktok",
+    "instagram",
+    "youtube",
+    "ugc",
+    "creator-marketing"
+  ],
+  "mcpServers": "./.mcp.json"
+}

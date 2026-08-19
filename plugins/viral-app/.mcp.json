@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "viral_app": {
+      "type": "http",
+      "url": "https://viral.app/api/mcp"
+    }
+  }
+}
