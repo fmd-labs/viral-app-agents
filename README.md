@@ -275,6 +275,12 @@ When releasing, bump `version` together in `plugin.json`, `gemini-extension.json
 - This repository contains no secrets and never will. It only ships public configuration pointing at the viral.app endpoint; all credentials are issued at runtime through OAuth in your own browser.
 - Tools that spend viral.app credits (live lookups, refreshes) quote their cost first and only execute when called again with explicit confirmation.
 
+## Support and privacy
+
+- Support: [support@viral.app](mailto:support@viral.app)
+- Privacy policy: [viral.app/legal/privacy](https://viral.app/legal/privacy)
+- Terms of service: [viral.app/legal/terms](https://viral.app/legal/terms)
+
 ## Related
 
 - [viral.app docs](https://viral.app/docs)
