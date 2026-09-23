@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "viral-app",
   "version": "0.2.0",
   "description": "Connect viral.app to your agent: OAuth MCP server with 50+ tools for social analytics, account/video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube lookups, plus a usage skill.",
@@ -11,18 +12,14 @@
   "license": "MIT",
   "keywords": [
     "viral.app",
-    "mcp",
-    "social-analytics",
-    "tiktok",
-    "instagram",
-    "youtube",
-    "ugc",
-    "creator-marketing"
-  ],
-  "mcpServers": {
-    "viral_app": {
-      "type": "http",
-      "url": "https://viral.app/api/mcp"
-    }
-  }
+    "viral app",
+    "ugc analytics",
+    "tiktok analytics",
+    "instagram analytics",
+    "youtube analytics",
+    "creator campaigns",
+    "creator marketing",
+    "social media analytics",
+    "mcp"
+  ]
 }
