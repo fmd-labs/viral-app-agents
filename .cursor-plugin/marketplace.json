@@ -1,0 +1,16 @@
+{
+  "name": "viral-app",
+  "owner": {
+    "name": "FMD Labs"
+  },
+  "metadata": {
+    "description": "Official viral.app plugins for coding agents: connect the viral.app MCP server and get usage skills for analytics, tracking, tags, and live social data."
+  },
+  "plugins": [
+    {
+      "name": "viral-app",
+      "source": "./plugins/viral-app",
+      "description": "Connect viral.app to your agent: OAuth MCP server with 50+ tools for social analytics, account/video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube lookups, plus a usage skill."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.fmd-labs/viral-app",
+  "title": "viral.app",
+  "description": "UGC and creator campaign analytics for TikTok, Instagram and YouTube: tracking, tags, live lookups.",
+  "version": "1.0.0",
+  "websiteUrl": "https://viral.app/docs/brands/api",
+  "repository": {
+    "url": "https://github.com/fmd-labs/viral-app-agents",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://viral.app/brand/favicons/prod/icon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"]
+    },
+    {
+      "src": "https://viral.app/icon-512x512.png",
+      "mimeType": "image/png",
+      "sizes": ["512x512"]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://viral.app/api/mcp"
+    }
+  ]
+}

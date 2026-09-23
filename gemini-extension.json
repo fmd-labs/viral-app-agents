@@ -1,0 +1,14 @@
+{
+  "name": "viral-app",
+  "version": "0.2.0",
+  "description": "Connect viral.app to your agent: OAuth MCP server with 50+ tools for social analytics, account/video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube lookups, plus a usage skill.",
+  "mcpServers": {
+    "viral_app": {
+      "httpUrl": "https://viral.app/api/mcp",
+      "oauth": {
+        "enabled": true,
+        "scopes": ["mcp:read", "mcp:write", "mcp:credits", "offline_access"]
+      }
+    }
+  }
+}
