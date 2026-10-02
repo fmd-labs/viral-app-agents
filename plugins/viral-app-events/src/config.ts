@@ -3,11 +3,13 @@ import { homedir } from "node:os"
 import { join } from "node:path"
 
 export const SERVER_NAME = "viral_app_events"
-export const SERVER_VERSION = "0.3.0"
+export const SERVER_VERSION = "0.1.0"
 export const DEFAULT_MCP_URL = "https://viral.app/api/mcp"
 /** The `--channels` / `--dangerously-load-development-channels` entry for this plugin. */
-export const CHANNEL_ENTRY = "plugin:viral-app@viral-app"
-export const CONFIGURE_COMMAND = "/viral-app:configure-events"
+export const CHANNEL_ENTRY = "plugin:viral-app-events@viral-app"
+export const CONFIGURE_COMMAND = "/viral-app-events:configure"
+/** The plugin whose `viral_app` server Claude uses to act on events. */
+export const MAIN_PLUGIN_INSTALL = "claude plugin install viral-app@viral-app"
 
 export type Env = Record<string, string | undefined>
 

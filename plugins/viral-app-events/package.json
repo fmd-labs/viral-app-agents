@@ -1,8 +1,8 @@
 {
-  "name": "viral-app-claude-channel",
-  "version": "0.3.0",
+  "name": "viral-app-events",
+  "version": "0.1.0",
   "private": true,
-  "description": "Claude Code channel that forwards viral.app MCP Events into a running session (built into dist/server.mjs).",
+  "description": "Claude Code channel plugin that forwards viral.app MCP Events into a running session (built into dist/server.mjs).",
   "license": "MIT",
   "type": "module",
   "engines": {

@@ -18,7 +18,7 @@ viral.app publishes events through MCP Events (`events/list`, then webhook or po
 | Client | Mechanism |
 | --- | --- |
 | ChatGPT Work chats (web, desktop with Cloud), dots | MCP Events subscription. The user describes what to monitor and how to respond; ChatGPT subscribes through viral.app and viral.app delivers each event to that chat. |
-| Claude Code | The viral.app events channel (`viral_app_events` server of this plugin) with `watch`. Setup in `references/claude-code-channel.md`. |
+| Claude Code | The separate `viral-app-events` plugin: a channel (`viral_app_events` server) whose `watch` tool pushes events into a session started with the channel flag. Setup in `references/claude-code-channel.md`. |
 | Claude web, Desktop, Codex, others | A scheduled task that polls the matching read tools (table in `references/recipes.md`). |
 
 In ChatGPT the user can say, for example: "Whenever a creator applies to my Habit Tracker job, summarize the application and draft a reply for me to approve." or "Tell me when any of our TikToks passes 100k views." To review or remove subscriptions use `list_event_subscriptions` and `delete_event_subscription`, or ask ChatGPT to stop monitoring.

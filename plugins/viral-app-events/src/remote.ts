@@ -225,7 +225,7 @@ export class McpEventsRemote implements EventsRemote {
       this.connecting = (async () => {
         const client = new Client(
           {
-            name: this.options.clientName ?? "viral-app-claude-channel",
+            name: this.options.clientName ?? "viral-app-events",
             version: this.options.clientVersion ?? "0.0.0",
           },
           { versionNegotiation: { mode: "auto" } },

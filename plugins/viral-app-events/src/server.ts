@@ -1,6 +1,6 @@
 // viral.app events channel for Claude Code.
 //
-// Claude Code spawns this stdio MCP server from the viral-app plugin. It
+// Claude Code spawns this stdio MCP server from the viral-app-events plugin. It
 // declares the `claude/channel` capability, polls viral.app's MCP Events
 // (`events/poll`) for the watches the user created, and pushes each event into
 // the running session as a `notifications/claude/channel` notification.
@@ -20,7 +20,9 @@ const LOG_FILE = process.env.VIRAL_APP_EVENTS_LOG_FILE
 
 function log(message: string): void {
   const line = `${SERVER_NAME}: ${message}\n`
-  process.stderr.write(line)
+  try {
+    process.stderr.write(line)
+  } catch {}
   if (LOG_FILE) {
     try {
       appendFileSync(LOG_FILE, `${new Date().toISOString()} ${line}`)
@@ -28,8 +30,6 @@ function log(message: string): void {
   }
 }
 
-process.on("unhandledRejection", (err) => log(`unhandled rejection: ${err}`))
-process.on("uncaughtException", (err) => log(`uncaught exception: ${err}`))
 
 const mcp = new Server(
   { name: SERVER_NAME, version: SERVER_VERSION },
@@ -88,6 +88,23 @@ function shutdown(): void {
   setTimeout(() => process.exit(0), 1_500).unref()
   void bridge.shutdown().finally(() => process.exit(0))
 }
+
+function isBrokenPipe(err: unknown): boolean {
+  const code = (err as NodeJS.ErrnoException | undefined)?.code
+  return code === "EPIPE" || code === "ERR_STREAM_DESTROYED"
+}
+
+// A closed pipe means Claude Code is gone: shut down instead of logging (and
+// failing to write) the same error over and over.
+process.stdout.on("error", (err) => {
+  if (isBrokenPipe(err)) shutdown()
+})
+process.stderr.on("error", () => {})
+process.on("unhandledRejection", (err) => log(`unhandled rejection: ${err}`))
+process.on("uncaughtException", (err) => {
+  if (isBrokenPipe(err)) return shutdown()
+  log(`uncaught exception: ${err}`)
+})
 
 // Claude Code closes stdin when the session ends; stop polling then so no
 // orphaned poller keeps leadership.

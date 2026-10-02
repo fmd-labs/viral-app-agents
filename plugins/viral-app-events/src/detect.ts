@@ -13,8 +13,9 @@ export interface DeliveryMode {
 }
 
 const CHANNEL_FLAG = /(?:^|\s)--(?:dangerously-load-development-)?channels(?:[=\s]|$)/
-const CHANNEL_ENTRY = /(?:^|[\s=,])(?:plugin:viral-app(?:@[\w.-]+)?|server:viral_app_events)(?=$|[\s,])/
-const CLAUDE_BINARY = /(?:^|[\s/\\])claude(?:\.exe)?(?:\s|$)|@anthropic-ai[/\\]claude-code/
+const CHANNEL_ENTRY = /(?:^|[\s=,])(?:plugin:viral-app-events(?:@[\w.-]+)?|server:viral_app_events)(?=$|[\s,])/
+const CLAUDE_BINARY =
+  /(?:^|[\s/\\])claude(?:\.exe)?(?:\s|$)|@anthropic-ai[/\\]claude-code|[/\\]claude[/\\]versions[/\\]/
 
 /** The Claude Code client identifies itself as `claude-code` in `initialize`. */
 export function isClaudeCodeClient(clientName: string | undefined, env: Env = process.env): boolean {
@@ -29,7 +30,8 @@ export function isClaudeCodeClient(clientName: string | undefined, env: Env = pr
  * plugin, and it never tells the server which case applies. Polling in a
  * session that drops the notifications would advance the cursors and lose
  * the events, so the bridge reads the flag from the Claude Code process
- * arguments. `VIRAL_APP_EVENTS_DELIVERY=on|off` overrides the check.
+ * arguments. When they cannot be read (Windows, no `ps`), delivery stays
+ * off. `VIRAL_APP_EVENTS_DELIVERY=on|off` overrides the check.
  */
 export function detectDeliveryMode(
   env: Env = process.env,
@@ -46,23 +48,28 @@ export function detectDeliveryMode(
     chain = []
   }
   if (chain.length === 0) {
+    // Not knowing means not polling: a poll from a session that drops the
+    // notifications would advance the cursor and lose the events.
     return {
-      active: true,
-      reason: "could not inspect the parent process; assuming the channel is enabled",
+      active: false,
+      reason:
+        "could not read the Claude Code process arguments; start the channel session with VIRAL_APP_EVENTS_DELIVERY=on",
     }
   }
-  for (const proc of chain) {
-    if (CHANNEL_FLAG.test(proc.args) && CHANNEL_ENTRY.test(proc.args)) {
-      return { active: true, reason: "Claude Code was started with this channel enabled" }
-    }
-  }
+  // Only the nearest Claude Code process counts: an outer shell or tool whose
+  // own arguments mention the flag says nothing about this session.
   const claude = chain.find((proc) => CLAUDE_BINARY.test(proc.args))
-  return {
-    active: false,
-    reason: claude
-      ? "Claude Code was started without the viral.app channel flag"
-      : "the parent process is not a Claude Code session started with the viral.app channel flag",
+  if (!claude) {
+    return {
+      active: false,
+      reason:
+        "no Claude Code process among the parent processes; start the channel session with VIRAL_APP_EVENTS_DELIVERY=on if it runs under a wrapper",
+    }
   }
+  if (CHANNEL_FLAG.test(claude.args) && CHANNEL_ENTRY.test(claude.args)) {
+    return { active: true, reason: "Claude Code was started with this channel enabled" }
+  }
+  return { active: false, reason: "Claude Code was started without the viral-app-events channel flag" }
 }
 
 /** Walks up to `depth` ancestors with `ps` (macOS, Linux). Empty where `ps` is unavailable. */

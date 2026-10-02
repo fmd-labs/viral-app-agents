@@ -71,7 +71,7 @@ function setup(steps: Step[], watchOverrides: Partial<Watch> = {}) {
     },
     isActive: () => state.active,
     timing,
-    configureCommand: "/viral-app:configure-events",
+    configureCommand: "/viral-app-events:configure",
     onAuthFailure: () => {
       state.authFailures += 1
     },
@@ -183,7 +183,7 @@ describe("pollOnce", () => {
     expect(await t.poller.pollOnce("w_test")).toEqual({ kind: "auth_failed", error: "HTTP 401" })
     expect(t.emitted).toHaveLength(1)
     expect(t.emitted[0].meta).toEqual({ notice: "auth_failed" })
-    expect(t.emitted[0].content).toContain("/viral-app:configure-events")
+    expect(t.emitted[0].content).toContain("/viral-app-events:configure")
     expect(t.state.authFailures).toBe(1)
     expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "skipped", reason: "API key rejected" })
     expect(t.remote.calls).toHaveLength(1)

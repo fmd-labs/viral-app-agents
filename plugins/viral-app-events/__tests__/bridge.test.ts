@@ -1,10 +1,12 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test"
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { startFakeViralApp } from "../dev/fake-viral-app"
 import { Bridge, validateAgainstCatalog } from "../src/bridge"
+import { Leadership } from "../src/leader"
 import type { ChannelNotification } from "../src/format"
+import { StateStore } from "../src/state"
 
 const fake = startFakeViralApp({ apiKey: "k", nextPollMs: 50 })
 afterAll(() => fake.stop())
@@ -107,9 +109,9 @@ describe("tools", () => {
   test("missing or rejected keys explain the configure command", async () => {
     const none = makeBridge({ key: null })
     expect((await none.bridge.callTool("watch", { event: "payout.due" })).content[0].text).toContain(
-      "/viral-app:configure-events",
+      "/viral-app-events:configure",
     )
-    expect(json(await none.bridge.callTool("status", {})).next_step).toContain("/viral-app:configure-events")
+    expect(json(await none.bridge.callTool("status", {})).next_step).toContain("/viral-app-events:configure")
 
     const wrong = makeBridge({ key: "nope" })
     const res = await wrong.bridge.callTool("watch", { event: "payout.due" })
@@ -117,17 +119,60 @@ describe("tools", () => {
     expect(res.content[0].text).toContain("HTTP 401")
   })
 
-  test("a session without the channel flag saves watches but does not poll", async () => {
-    const { bridge, emitted } = makeBridge({ delivery: false })
+  test("a session without the channel flag saves watches but never polls", async () => {
+    const pollsBefore = fake.requests.filter((r) => r.method === "events/poll").length
+    const { bridge, emitted, dir } = makeBridge({ delivery: false })
     const created = json(await bridge.callTool("watch", { event: "payout.due" }))
-    expect(created.delivery).toContain("--dangerously-load-development-channels plugin:viral-app@viral-app")
+    expect(created.delivery).toContain("--dangerously-load-development-channels plugin:viral-app-events@viral-app")
+    expect(created.starts).toContain("does not poll")
     fake.emit("payout.due", { payout: { id: "p_1" } })
+    bridge.tick()
     await Bun.sleep(150)
     expect(emitted).toEqual([])
+    // No events/poll request (no lease), no cursor, no poller leadership file.
+    expect(fake.requests.filter((r) => r.method === "events/poll").length).toBe(pollsBefore)
+    const saved = new StateStore(dir).read().watches.find((w) => w.id === created.watch_id)
+    expect(saved?.cursor).toBeNull()
+    expect(existsSync(join(dir, "poller.json"))).toBe(false)
     const status = json(await bridge.callTool("status", {}))
     expect(status.delivery.active_in_this_session).toBe(false)
     expect(status.api_key).toMatchObject({ configured: true, source: "file" })
     expect(status.api_key.preview).toBe("*")
+  })
+
+  test("a standby session (another session polls) does not poll either", async () => {
+    const pollsBefore = fake.requests.filter((r) => r.method === "events/poll").length
+    const { bridge, dir } = makeBridge()
+    // A newer channel session (a live process: our parent) takes over polling.
+    new Leadership(dir, process.ppid, Date.now, () => true).claim()
+    expect(bridge.isPolling()).toBe(false)
+    const created = json(await bridge.callTool("watch", { event: "payout.due", arguments: { campaignId: "orgcamp_x" } }))
+    expect(created.delivery).toContain("standby")
+    bridge.tick()
+    await Bun.sleep(100)
+    expect(fake.requests.filter((r) => r.method === "events/poll").length).toBe(pollsBefore)
+  })
+
+  test("a watch saved elsewhere is started by the polling session", async () => {
+    const { bridge, emitted, dir } = makeBridge()
+    new StateStore(dir).update((s) => {
+      s.watches.push({
+        id: "w_elsewhere1",
+        event: "payout.due",
+        arguments: { campaignId: "orgcamp_late" },
+        includeText: false,
+        createdAt: new Date().toISOString(),
+        cursor: null,
+        status: "active",
+        delivered: 0,
+        recentEventIds: [],
+      })
+    })
+    bridge.tick()
+    await waitFor(() => new StateStore(dir).read().watches[0].cursor !== null)
+    fake.emit("payout.due", { payout: { id: "p_late", campaignId: "orgcamp_late" } })
+    await waitFor(() => emitted.length > 0)
+    expect(emitted[0].meta).toMatchObject({ watch_id: "w_elsewhere1", payout_id: "p_late" })
   })
 
   test("list_events summarizes filters and returns one definition on request", async () => {
