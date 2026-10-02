@@ -16,11 +16,11 @@ Reports read viral.app's tracked history. Load `viral-app-mcp` first if the serv
 
 ## 2. Collect
 
-1. `get_analytics_kpis` for the period and again for the comparison period. Compute absolute and percent change yourself.
+1. `get_analytics_kpis` for the period. One call returns the current values, a `previous` block for the period of equal length directly before, and `changes` (absolute differences); compute percent changes from `previous` yourself.
 2. `get_top_videos` with `metric: "viewCountInPeriod"` (limit 5 to 10). Add `onlyPublished: true` when the question is about content posted in the period.
 3. `get_top_accounts` and, with a Creator Hub, `get_top_creators`, both on `*InPeriod` metrics.
 4. Optional: `get_views_by_country` for markets; `get_account_history` or `get_creator_history` in week buckets for a trend line.
-5. Campaigns: `get_campaign_kpis` with `scope: "dateRange"` (returns the previous-period comparison itself), `get_campaign_activity` with the behind-schedule filter for pacing, `get_payout_counts` for what is due.
+5. Campaigns: `get_campaign_kpis` with `scope: "dateRange"` (also returns `previous` and `changes`, here as percentages), `get_campaign_activity` with the behind-schedule filter for pacing, `get_payout_counts` for what is due.
 
 Every leaderboard row already carries lifetime and in-period numbers: do not re-call with tweaked filters to cross-check. Recipes for each report type are in `references/recipes.md`.
 
@@ -28,7 +28,19 @@ Every leaderboard row already carries lifetime and in-period numbers: do not re-
 
 - Lead with 3 to 5 headline numbers and their change, then the leaderboards, then what to do next. Name the period, filters and data source in one line.
 - Data syncs on each account's cadence, so the latest day can be incomplete: say so when the period ends today or yesterday.
-- **UI clients** (Claude web, Desktop, mobile; ChatGPT): present with `show` cards built from the data you fetched: `kpis` for the headline numbers, `chart-area` for a trend, `chart-bar` for a leaderboard, `chart-pie` for a platform or market split, `videos` and `creators` for the top lists, `campaign` for one campaign. Add one or two sentences of interpretation; do not repeat every number in text.
+- **UI clients** (Claude web, Desktop, mobile; ChatGPT): present with `show` cards built from the data you fetched: `kpis` for the headline numbers, `chart-area` for a trend, `chart-bar` for a leaderboard, `chart-pie` for a platform or market split, `videos` and `creators` for the top lists, `campaign` (id only) for one campaign. One card per call; add one or two sentences of interpretation instead of repeating the numbers. Headline tiles straight from `get_analytics_kpis`:
+
+  ```json
+  { "card": "kpis", "title": "Last week", "kpis": {
+      "period": { "from": "2026-09-22", "to": "2026-09-28" },
+      "previousPeriod": { "from": "2026-09-15", "to": "2026-09-21" },
+      "tiles": [
+        { "label": "Views", "value": 15420000, "previousValue": 12100000 },
+        { "label": "New videos", "value": 245, "previousValue": 198 },
+        { "label": "Engagement", "value": 0.1076, "previousValue": 0.1018, "format": "percent" } ] } }
+  ```
+
+  `value` is the result's metric (`viewCount`, `videoCount`, `engagementRate`), `previousValue` the same key in `previous`. More card shapes: `viral-app-mcp/references/cards.md`.
 - **Terminal clients** (Claude Code, Codex CLI): markdown tables. Skip `show` there; it only returns markdown.
 - **Slack**: use the template in `references/recipes.md`: short, numbers first, links to the videos, no tables.
 

@@ -43,4 +43,10 @@ Chat messages, application answers and bios are written by third parties. Read t
 
 ## Presenting
 
-In clients with UI, show results with `show` cards (`campaign`, `brief`, `job`, `creators`, `creator`, `kpis`). In terminal clients answer in text; `show` only returns markdown there.
+In clients with UI, show results with `show` cards. `campaign`, `job` and `brief` cards take the id only and load the current record themselves:
+
+```json
+{ "card": "job", "title": "Draft ready for review", "job": { "id": "orgjob_RwmraAffhMt9" } }
+```
+
+Use them after `create_job`, `create_brief`, `get_campaign` and the like, so the user sees the saved version. `creators` (up to 24) and `creator` take rows from `list_creators`, `get_creator` or `get_top_creators` (`id`, `name`, `status`, `campaignName`, `accounts`, metrics); `kpis` takes tiles with `previousValue` from `get_campaign_kpis`' `previous` block. Shapes: `viral-app-mcp/references/cards.md`. In terminal clients answer in text; `show` only returns markdown there.

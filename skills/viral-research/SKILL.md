@@ -38,4 +38,13 @@ The library is curated performance UGC (TikTok and Instagram Reels, mostly app a
 
 ## Presenting
 
-In clients with UI, show examples with the `videos` or `video` card and a split by format or hook with `chart-pie` or `chart-bar`. In terminal clients, a table with link, format, hook, views and why it worked.
+In clients with UI, show examples with a `videos` card (up to 12) built from the search results. Pass each result's library `id` (`orgrsv_…`) so the card opens the library's detail sheet:
+
+```json
+{ "card": "videos", "title": "Study apps: curiosity-gap hooks", "videos": [
+    { "platform": "tiktok", "platformVideoId": "7419876543210987654", "id": "orgrsv_AbCdEf123456",
+      "accountUsername": "studywithmia", "caption": "POV: the app that finally made me study",
+      "thumbnailUrl": "https://...", "viewCount": 2400000, "likeCount": 310000 } ] }
+```
+
+For the organization's own videos (from `get_top_videos`, `list_videos`) set `tracked: true` instead of `id`. A split by format or hook works as `chart-pie` (one series, 2 to 12 slices) or `chart-bar`; shapes in `viral-app-mcp/references/cards.md`. In terminal clients, a table with link, format, hook, views and why it worked.

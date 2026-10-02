@@ -8,11 +8,12 @@ All ranges are ISO dates. "Previous period" means the same number of days direct
 - **New content**: videos published inside the range (`onlyPublished: true` or `publicationMode: "onlyPublished"`).
 - **Campaign views** (`get_campaign_kpis`): views gained by videos posted while the creator was assigned to the campaign, counted as long as the assignment lasts.
 - **Effective CPM**: spend (paid plus projected) per 1,000 campaign views; **paid CPM** uses paid spend only. Amounts come back in the campaign currency for a single campaign, otherwise the organization's default currency.
+- **Comparisons**: `get_analytics_kpis` always compares with the period of equal length directly before (`previous`, plus `changes` as absolute differences). `get_campaign_kpis` with `scope: "dateRange"` does the same, with `changes` as percentages. Campaign KPI keys: `totalViews`, `publishedVideos`, `eligibleVideos`, `activeCreators`, `activeAccounts`, `payoutTotal`, `paidPayoutTotal`, `spendPerVideo`, `effectiveCpm`, `paidCpm`.
 - **Engagement rate**: as returned by the tools; do not recompute it from rounded numbers.
 
 ## Weekly UGC recap
 
-1. `get_analytics_kpis` for last Monday to Sunday and for the week before.
+1. `get_analytics_kpis` for last Monday to Sunday (its `previous` block is the week before).
 2. `get_top_videos` (`metric: "viewCountInPeriod"`, `limit: 10`) and the same with `onlyPublished: true` to separate new hits from evergreen videos.
 3. `get_top_accounts` (`viewCountInPeriod`, `limit: 5`).
 4. With a Creator Hub: `get_top_creators` (`viewCountInPeriod`), `get_campaign_kpis` (`scope: "dateRange"`), `get_campaign_activity` filtered to creators behind schedule, `get_payout_counts`.
@@ -37,11 +38,23 @@ All ranges are ISO dates. "Previous period" means the same number of days direct
 
 ## Markets
 
-- `get_views_by_country` for the range: view gains per country with top accounts and videos. Pair it with a `chart-pie` card (share by market) or a `chart-bar` card (top markets).
+- `get_views_by_country` for the range: view gains per country with top accounts and videos. Pair it with a `chart-pie` card (share by market, up to 12 slices) or a `chart-bar` card (top markets):
+
+```json
+{ "card": "chart-bar", "title": "Views by market", "chart": {
+    "xKey": "country", "series": [{ "key": "views", "name": "Views" }],
+    "data": [{ "country": "US", "views": 6200000 }, { "country": "DE", "views": 2100000 }, { "country": "GB", "views": 1300000 }] } }
+```
 
 ## Trend lines
 
 - `get_account_history` and `get_creator_history` return day, week or month buckets of views, likes, posts, followers and engagement. Use week buckets for ranges over six weeks, day buckets below.
+- Show them as `chart-area` with one row per bucket (2 to 500 rows, up to 6 series), for example `xKey: "date"` and series `views` and `likes`.
+
+## Top lists as cards
+
+- `get_top_videos` rows go into a `videos` card (up to 12): copy `platform`, `platformVideoId`, the account username, caption, thumbnail and metrics, and set `tracked: true`.
+- `get_top_creators` rows go into a `creators` card (up to 24): `id`, `name`, accounts and the `*InPeriod` metrics.
 
 ## Slack-ready summary
 

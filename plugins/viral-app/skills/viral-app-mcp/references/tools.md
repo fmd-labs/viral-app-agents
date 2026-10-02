@@ -106,7 +106,10 @@ Common filters: `dateRange`, `platforms`, `accounts`, `projects`, `tags` or `tag
 
 - `search_content`, `read_content`: search and read viral.app docs and guides.
 
-## Cards and event subscriptions
+## Cards, ChatGPT entrypoints and event subscriptions
 
-- `show`: render interactive cards (`videos`, `video`, `account`, `creators`, `creator`, `campaign`, `job`, `brief`, `kpis`, `chart-area`, `chart-bar`, `chart-pie`) in clients with UI; markdown fallback elsewhere.
-- `list_event_subscriptions`, `delete_event_subscription`: see and remove MCP Events subscriptions (for example the ones ChatGPT created for a task).
+- `show`: one card per call from data you already fetched; a flat object `{ card, title?, <field> }` with `card` one of `videos`, `video`, `account`, `creators`, `creator`, `campaign`, `job`, `brief`, `chart-area`, `chart-bar`, `chart-pie`, `kpis` and the field named for it (`chart` for the three charts). `campaign`, `job` and `brief` take `{ id }` only; `kpis` tiles take `previousValue` from the KPI tools' `previous` block. Visual in Claude and ChatGPT, markdown elsewhere. Examples: `cards.md`.
+- `open_viral_app_home`, `open_chat_cards`: ChatGPT UI entrypoints (the viral.app sidebar app and the conversation panel). Never call them yourself.
+- `list_event_subscriptions`: the organization's MCP event subscriptions you may manage (your own; owners and admins see all): `id` (`mcpsub_…`), `event`, `arguments`, `deliveryMode` (`webhook` for ChatGPT, `poll` for the Claude Code channel), `client`, `createdAt`, `expiresAt`, `lastDeliveryAt`, `status`.
+- `delete_event_subscription`: `{ id }` ends one subscription at once; returns `{ deleted }`.
+- The events themselves are MCP methods (`events/list`, `events/subscribe`, `events/poll`), not tools: see the `ugc-automations` skill.
