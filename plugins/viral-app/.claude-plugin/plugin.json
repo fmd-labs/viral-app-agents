@@ -19,10 +19,19 @@
     "ugc",
     "creator-marketing"
   ],
+  "commands": [
+    "./channel/commands/configure-events.md"
+  ],
   "mcpServers": {
     "viral_app": {
       "type": "http",
       "url": "https://viral.app/api/mcp"
+    },
+    "viral_app_events": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/channel/dist/server.mjs"
+      ]
     }
   }
 }

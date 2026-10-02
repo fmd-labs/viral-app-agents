@@ -1,0 +1,28 @@
+{
+  "name": "viral-app-claude-channel",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Claude Code channel that forwards viral.app MCP Events into a running session (built into dist/server.mjs).",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "bun build src/server.ts --target=node --format=esm --minify-syntax --minify-whitespace --outfile dist/server.mjs",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "fake": "bun dev/fake-viral-app.ts",
+    "smoke": "bun dev/smoke.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.2.0",
+    "@modelcontextprotocol/sdk": "1.31.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.2",
+    "@types/node": "^24",
+    "typescript": "^6"
+  }
+}
