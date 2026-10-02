@@ -3,15 +3,25 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": ["ES2023"],
-    "types": ["node", "bun"],
+    "lib": [
+      "ES2023"
+    ],
+    "types": [
+      "node",
+      "bun"
+    ],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowImportingTsExtensions": false,
     "isolatedModules": true,
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "resolveJsonModule": true
   },
-  "include": ["src", "__tests__", "dev"]
+  "include": [
+    "src",
+    "__tests__",
+    "dev"
+  ]
 }

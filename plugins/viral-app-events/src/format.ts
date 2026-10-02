@@ -68,9 +68,9 @@ export const EVENT_LABELS: Record<string, string> = {
 }
 
 /**
- * Keys whose string values are free text, often written by creators (chat
- * messages, application answers, bios). Dropped unless the watch opted in
- * with `include_text`, so third-party prose reaches the model only on request.
+ * Fallback only, for events whose `x-viral-text-fields` is unknown: keys whose
+ * string values are free text, often written by creators (chat messages,
+ * notes, bios). Dropped unless the watch opted in with `include_text`.
  */
 const TEXT_KEY =
   /^(?:body|text|message|content|markdown|answer|answers|note|notes|bio|description|comment|comments|caption|transcript|preview|excerpt|snippet|reply|summary|prompt)$|markdown$|text$|body$/i
@@ -78,7 +78,7 @@ const MAX_SHORT_STRING = 160
 const MAX_TEXT_STRING = 4_000
 const MAX_ARRAY_ITEMS = 25
 const MAX_DEPTH = 6
-const MAX_DATA_CHARS = 3_000
+const MAX_DATA_CHARS = 4_000
 const MAX_DATA_CHARS_WITH_TEXT = 12_000
 const MAX_META_ENTRIES = 16
 const MAX_NOTE_CHARS = 500
@@ -136,27 +136,81 @@ export function extractIdMeta(data: JsonObject): Record<string, string> {
 }
 
 /**
- * Copies the payload for display: keeps ids, numbers, flags, dates and short
- * strings; drops free text unless `includeText`; caps arrays and depth.
- * `omitted` lists the paths that were left out so Claude can fetch them with
- * the regular viral.app tools when needed.
+ * Removes viral.app's declared free-text paths (`x-viral-text-fields` from
+ * `events/list`) from a copy of `data`. A path has dots between keys and `[]`
+ * for every element of an array (`message.content`,
+ * `payout.lineItems[].title`). Empty values (null, "") stay, so the payload
+ * still shows that there was nothing to hide; `omitted` lists the concrete
+ * paths that were removed.
+ */
+export function stripTextFields(
+  data: JsonObject,
+  paths: readonly string[],
+): { data: JsonObject; omitted: string[] } {
+  const copy = structuredClone(data)
+  const omitted: string[] = []
+  const strip = (node: unknown, segments: string[], at: string) => {
+    if (!node || typeof node !== "object" || Array.isArray(node) || segments.length === 0) return
+    const [head, ...rest] = segments
+    const isArray = head.endsWith("[]")
+    const key = isArray ? head.slice(0, -2) : head
+    const obj = node as JsonObject
+    if (!key || !Object.hasOwn(obj, key)) return
+    const here = at ? `${at}.${key}` : key
+    const value = obj[key]
+    if (isArray) {
+      if (!Array.isArray(value)) return
+      if (rest.length === 0) {
+        if (value.length > 0) {
+          delete obj[key]
+          omitted.push(here)
+        }
+        return
+      }
+      value.forEach((item, i) => strip(item, rest, `${here}[${i}]`))
+      return
+    }
+    if (rest.length > 0) return strip(value, rest, here)
+    if (value === null || value === undefined || value === "") return
+    delete obj[key]
+    omitted.push(here)
+  }
+  for (const path of paths) strip(copy, path.split("."), "")
+  return { data: copy, omitted }
+}
+
+/**
+ * Copies the payload for display. Free text is handled in one of three ways:
+ * - `includeText`: kept (each string capped at 4,000 characters);
+ * - `textFields` known (viral.app's `x-viral-text-fields` for the event):
+ *   exactly those paths are dropped, everything else is kept;
+ * - otherwise a fallback heuristic drops strings under text-like keys (body,
+ *   message, content, notes, ...) and any string over 160 characters.
+ * Arrays and depth are capped in every mode. `omitted` lists the paths that
+ * were left out, so Claude can fetch them with the regular viral.app tools.
  */
 export function compactData(
   data: JsonObject,
   includeText: boolean,
+  textFields?: readonly string[],
 ): { data: JsonObject; omitted: string[] } {
   const omitted: string[] = []
+  let source = data
+  let heuristic = !includeText
+  if (!includeText && textFields) {
+    const stripped = stripTextFields(data, textFields)
+    source = stripped.data
+    omitted.push(...stripped.omitted)
+    heuristic = false
+  }
   const walk = (value: unknown, path: string, key: string, depth: number): unknown => {
     if (value === null || typeof value === "number" || typeof value === "boolean") return value
     if (typeof value === "string") {
-      if (includeText) {
-        return value.length > MAX_TEXT_STRING ? `${value.slice(0, MAX_TEXT_STRING)}…` : value
-      }
-      if (TEXT_KEY.test(key) || value.length > MAX_SHORT_STRING) {
+      if (heuristic && (TEXT_KEY.test(key) || value.length > MAX_SHORT_STRING)) {
         omitted.push(path)
         return undefined
       }
-      return value
+      return value.length > MAX_TEXT_STRING ? `${value.slice(0, MAX_TEXT_STRING)}…` : value
     }
     if (depth >= MAX_DEPTH) {
       omitted.push(path)
@@ -177,7 +231,7 @@ export function compactData(
     }
     return undefined
   }
-  const compact = (walk(data, "", "", 0) ?? {}) as JsonObject
+  const compact = (walk(source, "", "", 0) ?? {}) as JsonObject
   return { data: compact, omitted }
 }
 
@@ -217,8 +271,12 @@ function findNumber(data: JsonObject, key: string): number | undefined {
  * compact payload as single-line JSON: JSON escaping keeps creator text from
  * adding lines that could pass for bridge output.
  */
-export function formatEvent(watch: Watch, event: EventOccurrence): ChannelNotification {
-  const { data, omitted } = compactData(event.data ?? {}, watch.includeText)
+export function formatEvent(
+  watch: Watch,
+  event: EventOccurrence,
+  textFields?: readonly string[],
+): ChannelNotification {
+  const { data, omitted } = compactData(event.data ?? {}, watch.includeText, textFields)
   let json = JSON.stringify(omitted.length ? { ...data, omitted } : data)
   const limit = watch.includeText ? MAX_DATA_CHARS_WITH_TEXT : MAX_DATA_CHARS
   const idMeta = extractIdMeta(event.data ?? {})
@@ -257,6 +315,37 @@ export function formatStoppedNotice(watch: Watch, reason: string): ChannelNotifi
   return {
     content: [headerLine(watch), `This watch was stopped and is no longer polled: ${reason.slice(0, 300)}`].join("\n"),
     meta: { notice: "watch_stopped", watch_id: watch.id, event: sanitizeMetaValue(watch.event) ?? "unknown" },
+  }
+}
+
+const ACCESS_REASONS: Record<string, string> = {
+  api_access_required:
+    "the organization's plan does not include API access, which viral.app events require. Polling resumes on its own once the plan includes it (the bridge retries every 15 minutes)",
+  read_only: "event subscriptions are not available to viewers of viral.app's demo organization",
+  scope: "the credential lacks the mcp:read scope",
+  no_organization: "no organization stands behind the API key",
+  unauthenticated: "the request was not authenticated",
+}
+
+export function formatAccessNotice(
+  reason: string | undefined,
+  message: string,
+  configureCommand: string,
+): ChannelNotification {
+  const why = (reason && ACCESS_REASONS[reason]) ?? message.slice(0, 200)
+  return {
+    content: `viral.app refused events for this organization: ${why}. Polling is paused for all watches. If the key belongs to the wrong organization or member, ask the user to run ${configureCommand} with another one.`,
+    meta: { notice: "access_denied", ...(reason && /^[a-z_]{1,40}$/.test(reason) ? { reason } : {}) },
+  }
+}
+
+export function formatQuotaNotice(watch: Watch, max: number | undefined): ChannelNotification {
+  return {
+    content: [
+      headerLine(watch),
+      `viral.app's limit of ${max ?? "100"} event subscriptions for this organization is reached (ChatGPT automations and polling watches count together), so this watch cannot restart its subscription. It retries every 5 minutes. To free a slot, unwatch watches that are no longer needed, or list and remove subscriptions with the viral_app tools list_event_subscriptions and delete_event_subscription.`,
+    ].join("\n"),
+    meta: { notice: "quota", watch_id: watch.id, event: sanitizeMetaValue(watch.event) ?? "unknown" },
   }
 }
 

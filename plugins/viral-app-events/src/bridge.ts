@@ -49,6 +49,8 @@ export interface BridgeOptions {
 const START_COMMAND = `claude --dangerously-load-development-channels ${CHANNEL_ENTRY}`
 const CATALOG_TTL_MS = 10 * 60_000
 const TICK_MS = 15_000
+/** How often a pause for organization-wide access (e.g. no API access on the plan) is retried. */
+const ACCESS_RETRY_MS = 15 * 60_000
 const EVENT_NAME = /^[A-Za-z0-9_.:-]{1,128}$/
 
 const TOOLS: ToolDefinition[] = [
@@ -189,6 +191,7 @@ export class Bridge {
       onAuthFailure: () => {
         this.authFailedKey = this.remote?.key
       },
+      textFields: (event) => this.textFieldsFor(event),
       log: options.log,
     })
   }
@@ -232,10 +235,15 @@ export class Bridge {
     if (!this.started || !this.delivery.active) return
     try {
       const settings = loadSettings(this.store.dir, this.env)
-      if (this.poller.authError && settings.apiKey !== this.authFailedKey) {
-        this.log("API key changed; resuming polling")
-        this.poller.resetAuth()
-        this.authFailedKey = undefined
+      if (this.poller.authError) {
+        const keyChanged = settings.apiKey !== this.authFailedKey
+        const retryAccess =
+          this.poller.pauseKind === "access" && Date.now() - (this.poller.pausedAt ?? 0) > ACCESS_RETRY_MS
+        if (keyChanged || retryAccess) {
+          this.log(keyChanged ? "API key changed; resuming polling" : "retrying after an access refusal")
+          this.poller.resetAuth()
+          this.authFailedKey = undefined
+        }
       }
       if (!this.leadership.heartbeat() && this.leadership.isFree()) {
         this.leadership.claim()
@@ -280,6 +288,8 @@ export class Bridge {
         this.isPolling()
           ? inner.poll(params)
           : Promise.reject(new Error("this session does not deliver events, so it does not poll")),
+      listSubscriptions: inner.listSubscriptions ? () => inner.listSubscriptions!() : undefined,
+      deleteSubscription: inner.deleteSubscription ? (id) => inner.deleteSubscription!(id) : undefined,
       close: () => inner.close(),
     }
     this.remote = { key: settings.apiKey, url: settings.mcpUrl, client }
@@ -299,7 +309,7 @@ export class Bridge {
         case "watch":
           return await this.watch(args)
         case "unwatch":
-          return this.unwatch(args)
+          return await this.unwatch(args)
         case "list_watches":
           return this.listWatches()
         case "list_events":
@@ -362,8 +372,8 @@ export class Bridge {
       const catalog = await this.fetchCatalog()
       catalogError = validateAgainstCatalog(catalog, event, filters)
     } catch (err) {
-      const classified = classifyError(err)
-      if (classified.kind === "auth") return errorResult(this.authMessage(classified))
+      const refusal = this.refusalMessage(classifyError(err), event)
+      if (refusal) return errorResult(refusal)
     }
     if (catalogError) return errorResult(catalogError)
 
@@ -383,10 +393,8 @@ export class Bridge {
         nextPollMs = result.nextPollMs
       } catch (err) {
         const classified = classifyError(err)
-        if (classified.kind === "auth") return errorResult(this.authMessage(classified))
-        if (classified.kind !== "transient") {
-          return errorResult(`viral.app refused this watch (${classified.kind.replace("_", " ")}): ${classified.message}`)
-        }
+        const refusal = this.refusalMessage(classified, event)
+        if (refusal) return errorResult(refusal)
         warning = `Could not reach viral.app just now (${classified.message}); the watch is saved and starts with the next successful poll.`
       }
     }
@@ -444,7 +452,64 @@ export class Bridge {
     return `viral.app rejected the API key (${err.status ? `HTTP ${err.status}` : err.message}). Ask the user to check the key, or to run ${CONFIGURE_COMMAND} with a new one. The key must belong to an organization whose plan includes API access.`
   }
 
-  private unwatch(args: JsonObject): ToolResult {
+  /** What to tell the user when viral.app refuses a watch; null for transient errors. */
+  private refusalMessage(err: RemoteError, event: string): string | null {
+    switch (err.kind) {
+      case "transient":
+        return null
+      case "auth":
+        return this.authMessage(err)
+      case "access":
+        return err.reason === "api_access_required"
+          ? "viral.app events need a plan with API access, and this organization's plan does not include it. Upgrade the plan, then watch again."
+          : err.reason === "read_only"
+            ? "Event subscriptions are not available to viewers of viral.app's demo organization. Use a key of your own organization."
+            : `viral.app refused events for this credential (${err.reason ?? "forbidden"}): ${err.message}. Ask the user to run ${CONFIGURE_COMMAND} with a key of a member of the organization.`
+      case "forbidden":
+        return `Your role in this organization cannot receive ${event} events (${err.message}). Events follow the same roles as the tools that read the matching data.`
+      case "quota": {
+        const max = typeof err.data?.max === "number" ? err.data.max : 100
+        return `This organization already has ${max} event subscriptions, viral.app's limit (ChatGPT automations and polling watches count together). Free a slot first: unwatch watches you no longer need, or list and remove subscriptions with the viral_app tools list_event_subscriptions and delete_event_subscription. A polling subscription also ends 24 hours after its last poll.`
+      }
+      case "invalid":
+        return `viral.app rejected the filter arguments for ${event}: ${err.message}. list_events shows the accepted filters.`
+      case "not_found":
+        return `viral.app has no event named ${event}. Call list_events for the available names.`
+      default:
+        return `viral.app refused this watch (${err.kind.replace("_", " ")}): ${err.message}`
+    }
+  }
+
+  /** viral.app's `x-viral-text-fields` for an event, from the cached catalog; undefined when unknown. */
+  private async textFieldsFor(event: string): Promise<readonly string[] | undefined> {
+    const catalog = await this.fetchCatalog()
+    const fields = catalog.find((e) => e.name === event)?.["x-viral-text-fields"]
+    return Array.isArray(fields) ? fields : undefined
+  }
+
+  /**
+   * Ends the server-side poll lease of a removed watch, so it stops counting
+   * toward the organization's subscription cap right away instead of after
+   * 24 idle hours. Best effort: a failure leaves the lease to expire.
+   */
+  private async releaseLease(watch: Watch): Promise<string> {
+    const remote = this.getRemote()
+    if (!remote?.listSubscriptions || !remote.deleteSubscription) return "not released (no API key)"
+    try {
+      const wanted = canonicalJson(watch.arguments)
+      const match = (await remote.listSubscriptions()).find(
+        (sub) => sub.deliveryMode === "poll" && sub.event === watch.event && canonicalJson(sub.arguments) === wanted,
+      )
+      if (!match) return "none found on viral.app (it ends 24 hours after the last poll)"
+      return (await remote.deleteSubscription(match.id))
+        ? `released (${match.id})`
+        : `not released (${match.id} could not be deleted; it ends 24 hours after the last poll)`
+    } catch (err) {
+      return `not released (${classifyError(err).message}); it ends 24 hours after the last poll`
+    }
+  }
+
+  private async unwatch(args: JsonObject): Promise<ToolResult> {
     const id = typeof args.watch_id === "string" ? args.watch_id.trim() : ""
     const removed = this.store.update((state) => {
       const index = state.watches.findIndex((w) => w.id === id)
@@ -453,7 +518,11 @@ export class Bridge {
     if (!removed) return errorResult(`No watch with id ${JSON.stringify(id)}. Use list_watches to see the ids.`)
     this.poller.cancel(id)
     this.poller.runtime.delete(id)
-    return text({ removed: id, event: removed.event, arguments: removed.arguments })
+    const stillWatched = this.store
+      .read()
+      .watches.some((w) => w.event === removed.event && canonicalJson(w.arguments) === canonicalJson(removed.arguments))
+    const serverSubscription = stillWatched ? "kept (another watch uses it)" : await this.releaseLease(removed)
+    return text({ removed: id, event: removed.event, arguments: removed.arguments, server_subscription: serverSubscription })
   }
 
   private listWatches(): ToolResult {
@@ -488,10 +557,8 @@ export class Bridge {
       catalog = await this.fetchCatalog(true)
     } catch (err) {
       const classified = classifyError(err)
-      if (classified.kind === "auth") {
-        return errorResult(this.getRemote() ? this.authMessage(classified) : this.missingKeyMessage())
-      }
-      return errorResult(`Could not list events: ${classified.message}`)
+      if (!this.getRemote()) return errorResult(this.missingKeyMessage())
+      return errorResult(this.refusalMessage(classified, "these") ?? `Could not list events: ${classified.message}`)
     }
     if (typeof args.event === "string" && args.event) {
       const def = catalog.find((e) => e.name === args.event)
@@ -544,7 +611,17 @@ export class Bridge {
         active: watches.filter((w) => w.status === "active").length,
         stopped: watches.filter((w) => w.status === "stopped").length,
       },
-      auth_error: this.poller.authError,
+      paused: this.poller.authError
+        ? {
+            kind: this.poller.pauseKind,
+            detail: this.poller.authError,
+            since: this.poller.pausedAt ? new Date(this.poller.pausedAt).toISOString() : null,
+            resumes:
+              this.poller.pauseKind === "access"
+                ? "retried every 15 minutes, and when the API key changes"
+                : "when the API key changes",
+          }
+        : null,
       recent_errors: errors,
       next_step: !settings.apiKey
         ? `Run ${CONFIGURE_COMMAND} <api-key>.`

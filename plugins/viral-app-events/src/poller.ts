@@ -1,9 +1,11 @@
 import type { PollTiming } from "./config.js"
 import {
   type ChannelNotification,
+  formatAccessNotice,
   formatAuthNotice,
   formatEvent,
   formatGapNotice,
+  formatQuotaNotice,
   formatStoppedNotice,
 } from "./format.js"
 import { classifyError, type EventsRemote, type RemoteError } from "./remote.js"
@@ -32,6 +34,8 @@ export interface WatchRuntime {
   lastErrorAt?: string
   nextPollAt?: string
   drainPages: number
+  /** A quota notice went out for the current run of -32013 errors. */
+  quotaNotified?: boolean
 }
 
 export interface PollerDeps {
@@ -42,8 +46,13 @@ export interface PollerDeps {
   isActive: () => boolean
   timing: PollTiming
   configureCommand: string
-  /** Called once when viral.app rejects the API key. */
+  /** Called once when viral.app rejects the API key or the organization's access. */
   onAuthFailure?: () => void
+  /**
+   * viral.app's `x-viral-text-fields` for an event (from `events/list`), or
+   * undefined when unknown; the formatter then falls back to its heuristic.
+   */
+  textFields?: (event: string) => Promise<readonly string[] | undefined>
   log?: (message: string) => void
   now?: () => number
   random?: () => number
@@ -65,8 +74,16 @@ export class Poller {
   private readonly timers = new Map<string, ReturnType<typeof setTimeout>>()
   private readonly inflight = new Set<string>()
   readonly runtime = new Map<string, WatchRuntime>()
-  /** Set when viral.app rejects the key; cleared by `resetAuth` when the key changes. */
+  /**
+   * Why every watch is paused (null when polling): the key was rejected
+   * (`auth`, HTTP 401/403) or the organization or credential may not use
+   * events (`access`, -32012 with an org-wide reason). Cleared by `resetAuth`.
+   */
   authError: string | null = null
+  pauseKind: "auth" | "access" | null = null
+  pausedAt: number | null = null
+  /** The pause problem last announced, so a retry that fails the same way stays quiet. */
+  private lastPauseNotice: string | null = null
   private stopped = false
 
   constructor(private readonly deps: PollerDeps) {}
@@ -136,6 +153,8 @@ export class Poller {
 
   resetAuth(): void {
     this.authError = null
+    this.pauseKind = null
+    this.pausedAt = null
   }
 
   private async run(id: string): Promise<void> {
@@ -187,9 +206,13 @@ export class Poller {
 
     const seen = new Set(watch.recentEventIds)
     const fresh = result.events.filter((e) => !seen.has(e.eventId))
+    const textFields =
+      fresh.length > 0 && this.deps.textFields
+        ? await this.deps.textFields(watch.event).catch(() => undefined)
+        : undefined
     try {
       if (result.truncated && watch.cursor !== null) await this.deps.emit(formatGapNotice(watch))
-      for (const event of fresh) await this.deps.emit(formatEvent(watch, event))
+      for (const event of fresh) await this.deps.emit(formatEvent(watch, event, textFields))
     } catch (err) {
       // The session transport is gone; keep the cursor so nothing is skipped.
       return this.retry(watch, rt, `could not deliver to Claude Code: ${(err as Error).message}`)
@@ -207,6 +230,8 @@ export class Poller {
     })
     rt.consecutiveErrors = 0
     rt.lastError = undefined
+    rt.quotaNotified = false
+    this.lastPauseNotice = null
 
     let delayMs: number
     if (result.hasMore && rt.drainPages < MAX_DRAIN_PAGES) {
@@ -232,19 +257,46 @@ export class Poller {
     const rt = this.runtimeFor(watch.id)
     if (err.kind === "transient") return this.retry(watch, rt, err.message)
 
-    if (err.kind === "auth") {
-      const detail = err.status ? `HTTP ${err.status}` : err.message
+    if (err.kind === "auth" || err.kind === "access") {
+      const detail =
+        err.kind === "auth"
+          ? err.status
+            ? `HTTP ${err.status}`
+            : err.message
+          : `${err.reason ?? "forbidden"}: ${err.message}`
       const first = this.authError === null
       this.authError = detail
+      this.pauseKind = err.kind
+      this.pausedAt = this.now()
       if (first) this.deps.onAuthFailure?.()
-      this.log(`API key rejected (${detail}); pausing all watches`)
-      if (first) {
-        await this.deps.emit(formatAuthNotice(detail, this.deps.configureCommand)).catch(() => {})
+      this.log(`${err.kind === "auth" ? "API key rejected" : "events not available"} (${detail}); pausing all watches`)
+      const noticeKey = `${err.kind}:${err.reason ?? err.status ?? ""}`
+      if (noticeKey !== this.lastPauseNotice) {
+        this.lastPauseNotice = noticeKey
+        const notice =
+          err.kind === "auth"
+            ? formatAuthNotice(detail, this.deps.configureCommand)
+            : formatAccessNotice(err.reason, err.message, this.deps.configureCommand)
+        await this.deps.emit(notice).catch(() => {})
       }
       return { kind: "auth_failed", error: detail }
     }
 
-    const reason = `${err.kind.replace("_", " ")}: ${err.message}`
+    if (err.kind === "quota") {
+      // The organization's subscription cap: this watch's lease lapsed and no
+      // slot is free. Others may free one; try again at the slowest pace.
+      rt.consecutiveErrors += 1
+      rt.lastError = `subscription limit reached: ${err.message}`
+      rt.lastErrorAt = new Date(this.now()).toISOString()
+      if (!rt.quotaNotified) {
+        rt.quotaNotified = true
+        const max = typeof err.data?.max === "number" ? err.data.max : undefined
+        await this.deps.emit(formatQuotaNotice(watch, max)).catch(() => {})
+      }
+      return { kind: "retry", delayMs: this.deps.timing.maxBackoffMs, error: rt.lastError }
+    }
+
+    const reason = stopReason(watch, err)
     this.deps.store.updateWatch(watch.id, (w) => {
       w.status = "stopped"
       w.stopReason = reason
@@ -253,5 +305,21 @@ export class Poller {
     this.log(`watch ${watch.id} stopped (${reason})`)
     await this.deps.emit(formatStoppedNotice(watch, reason)).catch(() => {})
     return { kind: "stopped", reason }
+  }
+}
+
+/** Why a watch stopped, in words for the user. */
+export function stopReason(watch: Watch, err: RemoteError): string {
+  switch (err.kind) {
+    case "forbidden":
+      return `your role in this organization cannot receive ${watch.event} events (${err.message})`
+    case "not_found":
+      return `viral.app has no event named ${watch.event} (${err.message})`
+    case "invalid":
+      return `viral.app rejected the filter arguments (${err.message})`
+    case "unsupported":
+      return `viral.app does not offer polling for this event (${err.message})`
+    default:
+      return `${err.kind.replace("_", " ")}: ${err.message}`
   }
 }

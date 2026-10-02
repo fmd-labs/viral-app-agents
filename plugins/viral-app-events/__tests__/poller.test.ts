@@ -163,19 +163,91 @@ describe("pollOnce", () => {
     expect(t.emitted).toEqual([])
   })
 
-  test("unknown events and forbidden filters stop the watch with one notice", async () => {
-    for (const err of [
-      new RemoteError("not_found", "NotFound", -32011),
-      new RemoteError("forbidden", "Forbidden", -32012),
-      new RemoteError("invalid", "bad args", -32602),
-    ]) {
+  test("unknown events, role refusals and invalid filters stop the watch with one notice", async () => {
+    for (const [err, words] of [
+      [new RemoteError("not_found", "Unknown event", -32011, undefined, { kind: "event" }), "no event named"],
+      [new RemoteError("forbidden", "Your role cannot", -32012, undefined, { reason: "role" }), "your role"],
+      [new RemoteError("invalid", "bad args", -32602), "filter arguments"],
+      [new RemoteError("unsupported", "no poll", -32014), "does not offer polling"],
+    ] as const) {
       const t = setup([err])
       expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "stopped" })
       expect(t.current()).toMatchObject({ status: "stopped" })
+      expect(t.current()?.stopReason).toContain(words)
       expect(t.emitted).toHaveLength(1)
       expect(t.emitted[0].meta).toMatchObject({ notice: "watch_stopped", watch_id: "w_test" })
       expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "skipped" })
     }
+  })
+
+  test("an org-wide refusal (no API access) pauses everything and is announced once", async () => {
+    const access = () =>
+      new RemoteError("access", "This organization's plan does not include API access", -32012, undefined, {
+        reason: "api_access_required",
+      })
+    const t = setup([access(), access(), result({ cursor: "c1" }), access()])
+    expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "auth_failed" })
+    expect(t.poller.pauseKind).toBe("access")
+    expect(t.emitted.map((n) => n.meta)).toEqual([{ notice: "access_denied", reason: "api_access_required" }])
+    expect(t.emitted[0].content).toContain("plan does not include API access")
+    expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "skipped" })
+    // A retry that fails the same way stays quiet; after a success it is announced again.
+    t.poller.resetAuth()
+    await t.poller.pollOnce("w_test")
+    expect(t.emitted).toHaveLength(1)
+    t.poller.resetAuth()
+    expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "delivered" })
+    await t.poller.pollOnce("w_test")
+    expect(t.emitted).toHaveLength(2)
+    expect(t.current()?.status).toBe("active")
+  })
+
+  test("the subscription cap retries slowly with one notice", async () => {
+    const cap = () =>
+      new RemoteError("quota", "already has 100 event subscriptions", -32013, undefined, { limit: "subscriptions", max: 100 })
+    const t = setup([cap(), cap(), result({ cursor: "c1" })])
+    expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "retry", delayMs: 300_000 })
+    expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "retry", delayMs: 300_000 })
+    expect(t.emitted.map((n) => n.meta.notice)).toEqual(["quota"])
+    expect(t.emitted[0].content).toContain("limit of 100 event subscriptions")
+    expect(t.current()?.status).toBe("active")
+    expect(await t.poller.pollOnce("w_test")).toMatchObject({ kind: "delivered" })
+    expect(t.poller.runtimeFor("w_test").quotaNotified).toBe(false)
+  })
+
+  test("declared text fields are looked up per event and stripped", async () => {
+    const t = setup([
+      result({
+        cursor: "c1",
+        events: [
+          {
+            eventId: "e1",
+            name: "application.submitted",
+            timestamp: "2026-10-02T10:00:00.000Z",
+            data: { application: { id: "orgjapp_1", note: "keep me", secret: "drop me" } },
+          },
+        ],
+      }),
+    ])
+    const asked: string[] = []
+    const poller = new Poller({
+      store: t.store,
+      remote: () => t.remote,
+      emit: async (n) => {
+        t.emitted.push(n)
+      },
+      isActive: () => true,
+      timing,
+      configureCommand: "x",
+      textFields: async (event) => {
+        asked.push(event)
+        return ["application.secret"]
+      },
+    })
+    await poller.pollOnce("w_test")
+    expect(asked).toEqual(["application.submitted"])
+    expect(t.emitted[0].content).toContain('"note":"keep me"')
+    expect(t.emitted[0].content).not.toContain("drop me")
   })
 
   test("a rejected key pauses everything with a single notice", async () => {
