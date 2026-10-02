@@ -1,7 +1,7 @@
 {
   "name": "viral-app",
-  "version": "0.2.0",
-  "description": "Connect viral.app to your agent: OAuth MCP server with 50+ tools for social analytics, account/video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube lookups, plus a usage skill.",
+  "version": "0.3.0",
+  "description": "Connect viral.app to your agent: OAuth MCP server with 100+ tools for UGC analytics, account and video tracking, tags, Creator Hub campaigns, briefs, job postings, applications, creator chat and payouts, the viral video library and live TikTok/Instagram/YouTube lookups, with interactive cards and event automations, plus five workflow skills.",
   "author": {
     "name": "FMD Labs",
     "url": "https://viral.app"
@@ -19,10 +19,12 @@
     "ugc",
     "creator-marketing"
   ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "viral.app",
-    "shortDescription": "UGC performance tracking, creator campaigns, and live social data",
-    "longDescription": "Query tracked account and video analytics, manage tracking, tags and tag workflows, read Creator Hub campaigns, and fetch live TikTok, Instagram, YouTube, and Facebook data through the viral.app MCP server. Authentication runs through OAuth in your browser; credit-spending tools quote their cost before executing.",
+    "shortDescription": "UGC analytics and creator ops",
+    "longDescription": "Track and report UGC performance across TikTok, Instagram, YouTube, Facebook and Snapchat, and run creator programs from chat: read account, video and creator analytics, manage tracking, tags and tag workflows, write briefs, create and update campaigns, draft and publish job postings, review and answer applications, chat with creators, and read payouts. Research proven formats and hooks in viral.app's viral video library and fetch live platform data. Results render as interactive cards, and viral.app events (new applications, creator messages, payouts due, view milestones) can trigger tasks. Authentication runs through OAuth in your browser and is scoped to one organization; credit-spending tools quote their cost before executing, and tools that contact creators are flagged for confirmation. Starting payouts and creator Discovery stay in the viral.app dashboard.",
     "developerName": "FMD Labs",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
@@ -30,9 +32,12 @@
     "privacyPolicyURL": "https://viral.app/legal/privacy",
     "termsOfServiceURL": "https://viral.app/legal/terms",
     "defaultPrompt": [
-      "Show my top tracked accounts and videos from the last 7 days",
-      "Which tracked accounts stopped posting recently?",
-      "How many views does this video have right now?"
-    ]
+      "Summarize last week's UGC performance with the top videos and creators",
+      "Which new applications to my job postings need a reply?",
+      "Find viral UGC hooks for a study app and draft a creator brief"
+    ],
+    "brandColor": "#FF743D",
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png"
   }
 }
