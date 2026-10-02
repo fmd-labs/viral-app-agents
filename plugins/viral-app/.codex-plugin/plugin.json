@@ -29,6 +29,7 @@
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://viral.app",
+    "supportURL": "https://viral.app/support",
     "privacyPolicyURL": "https://viral.app/legal/privacy",
     "termsOfServiceURL": "https://viral.app/legal/terms",
     "defaultPrompt": [
