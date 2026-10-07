@@ -1,6 +1,6 @@
 # viral.app event catalog
 
-The MCP Events catalog is viral.app's customer webhook catalog plus three tracking events: 56 events, each offered for webhook delivery (ChatGPT) and polling (the Claude Code channel). `events/list` returns them 20 per page with `nextCursor`; each has an `inputSchema` and a `payloadSchema` and lists `x-viral-text-fields`, the paths into `data` that hold free text people wrote.
+The MCP Events catalog is viral.app's customer webhook catalog plus three tracking events: 56 events, each offered for webhook delivery (ChatGPT) and polling (`events/poll`). `events/list` returns them 20 per page with `nextCursor`; each has an `inputSchema` and a `payloadSchema` and lists `x-viral-text-fields`, the paths into `data` that hold free text people wrote.
 
 Filters: every argument is optional and narrows the stream; unknown names or wrong types are refused (-32602). No filters means every event of that type in the organization.
 

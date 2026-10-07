@@ -60,35 +60,6 @@ claude plugin install viral-app@viral-app
 
 Or interactively: `/plugin marketplace add https://github.com/fmd-labs/viral-app-agents`, then `/plugin install viral-app`. Afterwards run `/mcp`, pick `viral_app`, and authenticate in the browser. The `fmd-labs/viral-app-agents` shorthand also works if you have GitHub SSH access.
 
-##### Events channel (research preview)
-
-A second, Claude Code only plugin, `viral-app-events`, adds `viral_app_events`: a local [channel](https://code.claude.com/docs/en/channels) that pushes viral.app events (new applications, creator messages, payouts due, new videos, view milestones) into a running Claude Code session, so Claude can react while you are away. It polls viral.app's MCP Events with an API key; nothing listens on a port. Claude acts on the events with the `viral_app` server's tools, so keep the `viral-app` plugin installed alongside it.
-
-1. Install the events plugin next to `viral-app`:
-
-   ```bash
-   claude plugin install viral-app-events@viral-app
-   ```
-
-2. Create an API key for the organization at [viral.app/app/org/api/keys](https://viral.app/app/org/api/keys) (the plan needs API access).
-3. In Claude Code run `/viral-app-events:configure <api-key>`. It stores the key as `VIRAL_APP_API_KEY=...` in `~/.claude/channels/viral-app/.env` with mode 600. The command passes the key through the conversation; to keep it out of the transcript, write that file yourself or export `VIRAL_APP_API_KEY` before starting Claude Code. `/viral-app-events:configure` without arguments shows the setup status.
-4. Start the sessions that should receive events with the channel enabled. Channels are a research preview and this one is not on Anthropic's allowlist, so it needs the development flag:
-
-   ```bash
-   claude --dangerously-load-development-channels plugin:viral-app-events@viral-app
-   ```
-
-5. Ask Claude to watch something, for example "tell me when a creator applies to my Habit Tracker job and draft a reply". Claude uses the channel's `list_events` and `watch` tools; `list_watches`, `unwatch` and `status` manage them.
-
-Requirements and controls:
-
-- Node.js 20 or newer on the PATH. The server is a single bundled file (`plugins/viral-app-events/dist/server.mjs`); there is no install step.
-- Team and Enterprise plans: an owner enables channels under claude.ai Admin settings, Claude Code, Channels (`channelsEnabled` in managed settings). To run it without the development flag, an admin adds `{ "marketplace": "viral-app", "plugin": "viral-app-events" }` to `allowedChannelPlugins`; users then start with `claude --channels plugin:viral-app-events@viral-app`.
-- Only sessions started with the channel flag poll, and only one at a time (the newest takes over; an older one resumes when it exits). Claude Code does not tell a channel server whether the session enabled it, so the server reads the flag from the `claude` process arguments. A session without the flag never polls: it can create and list watches but makes no `events/poll` request, so it neither moves a cursor nor keeps a subscription alive. Set `VIRAL_APP_EVENTS_DELIVERY=on` or `off` before starting Claude Code to override the check. Where the arguments cannot be read (Windows, or no `ps`), the server does not poll unless `VIRAL_APP_EVENTS_DELIVERY=on` is set for the channel session.
-- Watches and cursors persist in `~/.claude/channels/viral-app/state.json` and catch up after a restart (up to 24 hours back). A watch created in a session without the flag starts recording when a channel session first polls it.
-- Each watch holds a poll subscription on viral.app, which counts toward the organization's limit of 100 event subscriptions (ChatGPT automations included). `unwatch` releases it right away; otherwise it ends 24 hours after the last poll. An organization without API access pauses all watches (retried every 15 minutes); a role that may not read an event stops that watch.
-- Security: event content can include text written by creators. The channel strips the paths viral.app declares as free text for each event (`x-viral-text-fields`, such as `message.content`) unless a watch opts in, and its instructions tell Claude to treat event content as untrusted data, never follow instructions in it, and act only on what you asked when creating the watch. Replies and other writes still go through the regular `viral_app` tools and your approval. The API key acts for its organization, so use one you are comfortable leaving on this machine.
-
 #### Codex CLI
 
 ```bash
@@ -290,13 +261,13 @@ Plugins bundle five skills. Agents load them on demand, and each keeps longer ma
 | `ugc-reporting` | Weekly or monthly UGC reports, KPI and leaderboard recipes with period-over-period change, cards in Claude and ChatGPT, Slack summaries, recurring reports through scheduled tasks or a ChatGPT page |
 | `creator-campaigns` | Creator Hub end to end: briefs in markdown, campaigns with the preview step, creator assignment, job drafts and publishing, applications, creator chat, and payout reads |
 | `viral-research` | The viral video library, similar videos, hook and scene breakdowns, AI analysis of tracked videos, live lookups, and turning findings into hooks and a brief |
-| `ugc-automations` | "Watch for X and do Y": MCP Events in ChatGPT, the Claude Code events channel, polling fallbacks, latency per event, and handling untrusted creator text |
+| `ugc-automations` | "Watch for X and do Y": MCP Events in ChatGPT, polling fallbacks for other clients, latency per event, and handling untrusted creator text |
 
 ## What's inside
 
 | Path | Purpose |
 | --- | --- |
-| `.claude-plugin/marketplace.json` | Claude-format marketplace catalog (Claude Code, Copilot CLI, VS Code, Factory, Grok Build). Lists `viral-app` and the Claude Code only `viral-app-events` |
+| `.claude-plugin/marketplace.json` | Claude-format marketplace catalog (Claude Code, Copilot CLI, VS Code, Factory, Grok Build). Lists `viral-app` |
 | `.agents/plugins/marketplace.json` | Codex marketplace catalog |
 | `.cursor-plugin/marketplace.json` | Cursor marketplace catalog (Cursor, Grok Bot) |
 | `gemini-extension.json` | Gemini CLI extension manifest (Gemini CLI, Qwen Code) |
@@ -310,27 +281,23 @@ Plugins bundle five skills. Agents load them on demand, and each keeps longer ma
 | `plugins/viral-app/.cursor-plugin/plugin.json` | Cursor plugin manifest |
 | `plugins/viral-app/.mcp.json` | Claude-format MCP config (Codex, Factory, Grok Build; Claude Code merges it with the inline entry) |
 | `plugins/viral-app/skills/` | The five skills (canonical copy) |
-| `plugins/viral-app-events/` | The Claude Code only events channel plugin: `.claude-plugin/plugin.json` (declares only the `viral_app_events` stdio server), `commands/configure.md` (`/viral-app-events:configure`), TypeScript sources (`src/`), the bundled `dist/server.mjs` that Claude Code runs, tests (`__tests__/`), and a fake viral.app server plus a stdio smoke test (`dev/`). It is listed only in `.claude-plugin/marketplace.json`; other hosts that read that catalog only see `status` if someone installs it |
 | `scripts/sync-skills.sh` | Copies `plugins/viral-app/skills/` to `skills/`; `--check` fails when they differ |
 | `scripts/build-chatgpt-package.sh` | Builds `dist/viral-app-chatgpt.zip` for OpenAI's plugin dashboard (Upload new version): the Codex manifest, `.mcp.json`, skills and assets of `plugins/viral-app`, checked against OpenAI's package rules, without the Claude and Cursor manifests |
 | `plugins/viral-app/assets/` | Plugin logo (`logo.svg`, `logo.png` at 400x400) |
 
 When releasing:
 
-- Bump the `viral-app` `version` together in `plugin.json`, `gemini-extension.json`, `plugins/viral-app/.claude-plugin/plugin.json`, `plugins/viral-app/.codex-plugin/plugin.json`, `plugins/viral-app/.cursor-plugin/plugin.json`, and its entries in `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json` (`grep -rn '"version"' --include=*.json . | grep -v viral-app-events` lists them).
-- `viral-app-events` versions on its own: `plugins/viral-app-events/.claude-plugin/plugin.json`, `plugins/viral-app-events/package.json`, `SERVER_VERSION` in `plugins/viral-app-events/src/config.ts`, and its entry in `.claude-plugin/marketplace.json`.
+- Bump the `viral-app` `version` together in `plugin.json`, `gemini-extension.json`, `plugins/viral-app/.claude-plugin/plugin.json`, `plugins/viral-app/.codex-plugin/plugin.json`, `plugins/viral-app/.cursor-plugin/plugin.json`, and its entries in `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json` (`grep -rn '"version"' --include=*.json .` lists them).
 - Edit skills only in `plugins/viral-app/skills/`, then run `scripts/sync-skills.sh` (`--check` verifies the copies match).
-- After changing `plugins/viral-app-events/src/`, run `bun install`, `bun run build`, `bun test` and `bun run smoke` in `plugins/viral-app-events` and commit `dist/server.mjs` (a test fails when the bundle is stale).
 - For ChatGPT, run `scripts/build-chatgpt-package.sh` and upload `dist/viral-app-chatgpt.zip` as a new version in the [OpenAI plugin dashboard](https://platform.openai.com/plugins). Changes to the hosted MCP server need no upload; manifest and skill changes do.
 - `server.json` has its own version; the MCP Registry rejects a version it has already published, so bump it with every change to that file.
 
 ## Auth and security
 
 - OAuth is the default. During consent you pick one organization; the grant is scoped to it permanently. Review or revoke authorized clients at [viral.app/app/user/settings/security](https://viral.app/app/user/settings/security).
-- API keys are only for advanced setups where one agent must switch between multiple organizations, and for the Claude Code events channel (`viral-app-events`). Create them per organization in the viral.app dashboard.
+- API keys are only for advanced setups where one agent must switch between multiple organizations. Create them per organization in the viral.app dashboard.
 - This repository contains no secrets and never will. It only ships public configuration pointing at the viral.app endpoint; all credentials are issued at runtime through OAuth in your own browser.
 - Tools that spend viral.app credits (live lookups, refreshes, video analysis) quote their cost first and only execute when called again with explicit confirmation.
-- The events channel keeps its API key only on your machine (`~/.claude/channels/viral-app/.env`, mode 600). Events can carry text written by creators; the channel and the skills treat it as untrusted data.
 
 ## Support and privacy
 

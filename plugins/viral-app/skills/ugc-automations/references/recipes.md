@@ -1,6 +1,6 @@
 # Automation recipes
 
-Each recipe: what the user says, the event and filters, and what to do per event. The same request works in ChatGPT (MCP Events), in Claude Code (`watch` with `note`), and as a polling task elsewhere.
+Each recipe: what the user says, the event and filters, and what to do per event. The same request works in ChatGPT (MCP Events) and as a polling task elsewhere.
 
 ## New applications to a job
 

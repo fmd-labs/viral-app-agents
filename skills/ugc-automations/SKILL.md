@@ -1,6 +1,6 @@
 ---
 name: ugc-automations
-description: Set up "watch for X and do Y" automations on viral.app events such as new job applications, creator chat messages, payouts becoming due, campaign, brief and assignment changes, new videos from tracked accounts, and views or follower milestones. Covers MCP Events in ChatGPT (Work chats and dots), the viral.app events channel in Claude Code, and scheduled polling in other clients, with latency expectations and rules for untrusted creator text. Use when the user wants to be told, or wants the agent to act, whenever something happens in viral.app. Not for one-off questions about current data or for recurring reports on a fixed schedule (ugc-reporting).
+description: Set up "watch for X and do Y" automations on viral.app events such as new job applications, creator chat messages, payouts becoming due, campaign, brief and assignment changes, new videos from tracked accounts, and views or follower milestones. Covers MCP Events in ChatGPT (Work chats and dots) and scheduled polling in other clients, with latency expectations and rules for untrusted creator text. Use when the user wants to be told, or wants the agent to act, whenever something happens in viral.app. Not for one-off questions about current data or for recurring reports on a fixed schedule (ugc-reporting).
 ---
 
 # viral.app automations
@@ -18,14 +18,13 @@ viral.app publishes events through MCP Events (`events/list`, then webhook or po
 | Client | Mechanism |
 | --- | --- |
 | ChatGPT Work chats (web, desktop with Cloud), dots | MCP Events subscription. The user describes what to monitor and how to respond; ChatGPT subscribes through viral.app and viral.app delivers each event to that chat. |
-| Claude Code | The separate `viral-app-events` plugin: a channel (`viral_app_events` server) whose `watch` tool pushes events into a session started with the channel flag. Setup in `references/claude-code-channel.md`. |
-| Claude web, Desktop, Codex, others | A scheduled task that polls the matching read tools (table in `references/recipes.md`). |
+| Claude (web, Desktop, Code), Codex, others | A scheduled task that polls the matching read tools (table in `references/recipes.md`). |
 
-In ChatGPT the user can say, for example: "Whenever a creator applies to my Habit Tracker job, summarize the application and draft a reply for me to approve." or "Tell me when any of our TikToks passes 100k views." To review or remove subscriptions use `list_event_subscriptions` and `delete_event_subscription`, or ask ChatGPT to stop monitoring. An organization holds at most 100 subscriptions (ChatGPT automations and Claude Code watches together); events need a plan with API access and a role that may read the matching data.
+In ChatGPT the user can say, for example: "Whenever a creator applies to my Habit Tracker job, summarize the application and draft a reply for me to approve." or "Tell me when any of our TikToks passes 100k views." To review or remove subscriptions use `list_event_subscriptions` and `delete_event_subscription`, or ask ChatGPT to stop monitoring. An organization holds at most 100 subscriptions; events need a plan with API access and a role that may read the matching data.
 
 ## 3. Set expectations
 
-- **Near real time** (seconds to about a minute): chat, applications, jobs, creators, briefs, campaign and assignment edits, payouts issued or paid. Polling sees an event about 10 seconds after it happened; the Claude Code channel polls about every 30 seconds.
+- **Near real time** (seconds to about a minute): chat, applications, jobs, creators, briefs, campaign and assignment edits, payouts issued or paid.
 - **Daily passes**: `payout.due` around 06:40 UTC; campaign and assignment starts, ends and billing periods shortly after 00:00 UTC.
 - **Tracking cadence** (hours, not seconds): `video.published`, `video.views_milestone`, `account.followers_milestone` are detected when viral.app syncs the account and rebuilds its data, so they follow each account's sync cadence.
 - Watches start from now; past events are not replayed. Gaps can happen (a notice says so): re-check state with the read tools then.

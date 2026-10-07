@@ -7,9 +7,7 @@
 #   .mcp.json                   the remote viral_app server (https://viral.app/api/mcp)
 #   skills/<name>/...           the bundled skills
 #   assets/                     logo and composer icon referenced by the manifest
-# The Claude and Cursor manifests and OS clutter stay out; the Claude Code
-# events channel lives in its own plugin (plugins/viral-app-events) and is
-# never part of this package. Nothing is uploaded.
+# The Claude and Cursor manifests and OS clutter stay out. Nothing is uploaded.
 #
 #   scripts/build-chatgpt-package.sh
 set -euo pipefail
