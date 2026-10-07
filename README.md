@@ -289,7 +289,7 @@ When releasing:
 
 - Bump the `viral-app` `version` together in `plugin.json`, `gemini-extension.json`, `plugins/viral-app/.claude-plugin/plugin.json`, `plugins/viral-app/.codex-plugin/plugin.json`, `plugins/viral-app/.cursor-plugin/plugin.json`, and its entries in `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json` (`grep -rn '"version"' --include=*.json .` lists them).
 - Edit skills only in `plugins/viral-app/skills/`, then run `scripts/sync-skills.sh` (`--check` verifies the copies match).
-- For ChatGPT, run `scripts/build-chatgpt-package.sh` and upload `dist/viral-app-chatgpt.zip` as a new version in the [OpenAI plugin dashboard](https://platform.openai.com/plugins). Changes to the hosted MCP server need no upload; manifest and skill changes do.
+- For ChatGPT, run `scripts/build-chatgpt-package.sh` and upload `dist/viral-app-chatgpt.zip` as a new version in the [OpenAI plugin dashboard](https://platform.openai.com/plugins). The script writes the published plugin's package name (`app-6a8713d41dc48191b33e75c49a764db3`) into the ZIP's manifest, because the dashboard refuses any other name. Changes to the hosted MCP server need no upload; manifest and skill changes do.
 - `server.json` has its own version; the MCP Registry rejects a version it has already published, so bump it with every change to that file.
 
 ## Auth and security

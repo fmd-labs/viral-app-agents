@@ -16,6 +16,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 plugin="$root/plugins/viral-app"
 out_dir="$root/dist"
 out="$out_dir/viral-app-chatgpt.zip"
+chatgpt_package_name="${CHATGPT_PACKAGE_NAME:-app-6a8713d41dc48191b33e75c49a764db3}"
 
 for tool in zip unzip python3; do
   command -v "$tool" >/dev/null || { echo "missing required tool: $tool" >&2; exit 1; }
@@ -26,6 +27,18 @@ trap 'rm -rf "$stage"' EXIT
 
 mkdir -p "$stage/.codex-plugin"
 cp "$plugin/.codex-plugin/plugin.json" "$stage/.codex-plugin/plugin.json"
+# The dashboard only takes a new version whose manifest name is the published
+# plugin's package name (Metadata & Skills > Package name), not "viral-app":
+# "Plugin name must match the existing plugin". Only the ZIP carries it; the
+# manifest in the repository keeps the name Codex installs by.
+python3 - "$stage/.codex-plugin/plugin.json" "$chatgpt_package_name" <<'PY'
+import json, sys
+path, name = sys.argv[1], sys.argv[2]
+manifest = json.load(open(path))
+manifest["name"] = name
+json.dump(manifest, open(path, "w"), indent=2, ensure_ascii=False)
+open(path, "a").write("\n")
+PY
 cp "$plugin/.mcp.json" "$stage/.mcp.json"
 cp -R "$plugin/skills" "$stage/skills"
 cp -R "$plugin/assets" "$stage/assets"
