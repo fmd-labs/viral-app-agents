@@ -5,15 +5,15 @@
     "url": "https://viral.app"
   },
   "metadata": {
-    "description": "Official viral.app plugins for coding agents: connect the viral.app MCP server and get usage skills for analytics, tracking, tags, and live social data.",
+    "description": "Official viral.app plugins for coding agents: connect the viral.app MCP server and get skills for UGC reporting, Creator Hub workflows, viral research and event automations.",
     "version": "0.1.0"
   },
   "plugins": [
     {
       "name": "viral-app",
       "source": "./plugins/viral-app",
-      "description": "Connect viral.app to your agent: OAuth MCP server with 50+ tools for social analytics, account/video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube lookups, plus a usage skill.",
-      "version": "0.2.0",
+      "description": "Connect viral.app to your agent: OAuth MCP server with 100+ tools for UGC analytics, account and video tracking, tags, Creator Hub campaigns, briefs, job postings, applications, creator chat and payouts, the viral video library and live TikTok/Instagram/YouTube lookups, with interactive cards and event automations, plus five workflow skills.",
+      "version": "0.3.0",
       "author": {
         "name": "FMD Labs",
         "url": "https://viral.app"

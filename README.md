@@ -1,6 +1,6 @@
 # viral-app-agents
 
-Official [viral.app](https://viral.app) plugins and install shortcuts for coding agents and chat apps. One install connects your agent to the viral.app MCP server: 50+ tools for social analytics, account and video tracking, tags and workflows, Creator Hub, and live TikTok/Instagram/YouTube/Facebook lookups, plus a usage skill that teaches the agent how to use them well.
+Official [viral.app](https://viral.app) plugins and install shortcuts for coding agents and chat apps. One install connects your agent to the viral.app MCP server: 100+ tools for UGC analytics, account and video tracking, tags and tag workflows, the Creator Hub (campaigns, briefs, job postings, applications, creator chat, payouts), the viral video library, and live TikTok/Instagram/YouTube/Facebook lookups. Plugins also bring [five skills](#skills) that teach the agent the workflows.
 
 The MCP server lives at `https://viral.app/api/mcp` (streamable HTTP, OAuth). You need a viral.app account with API access. Manage everything at [viral.app/app/org/api/agents](https://viral.app/app/org/api/agents).
 
@@ -10,7 +10,7 @@ Every client signs in with OAuth in your browser. viral.app supports dynamic cli
 
 **Chat apps:** [Claude.ai and Claude Desktop](#claudeai-and-claude-desktop) · [ChatGPT](#chatgpt) · [Grok](#grok) · [Other chat apps](#other-chat-apps)
 
-**Plugins (MCP server + skill):** [Claude Code](#claude-code) · [Codex CLI](#codex-cli) · [GitHub Copilot CLI](#github-copilot-cli) · [VS Code](#vs-code) · [Cursor](#cursor) · [Gemini CLI](#gemini-cli) · [Qwen Code](#qwen-code) · [Kiro](#kiro) · [Devin](#devin) · [Factory Droid](#factory-droid) · [Grok Build](#grok-build)
+**Plugins (MCP server + skills):** [Claude Code](#claude-code) · [Codex CLI](#codex-cli) · [GitHub Copilot CLI](#github-copilot-cli) · [VS Code](#vs-code) · [Cursor](#cursor) · [Gemini CLI](#gemini-cli) · [Qwen Code](#qwen-code) · [Kiro](#kiro) · [Devin](#devin) · [Factory Droid](#factory-droid) · [Grok Build](#grok-build)
 
 **MCP server only:** [Augment](#augment-and-auggie) · [JetBrains Junie](#jetbrains-junie) · [OpenCode](#opencode) · [Amp](#amp) · [Goose](#goose) · [Zed](#zed) · [Warp](#warp) · [Mistral Vibe](#mistral-vibe) · [Any other MCP client](#any-other-mcp-client)
 
@@ -26,9 +26,14 @@ https://viral.app/api/mcp
 
 [Open the connector settings](https://claude.ai/new?modal=add-custom-connector#settings/customize-connectors) or go to Settings, Connectors, Add custom connector.
 
+Results such as top videos, creators, campaigns and KPI charts render as interactive cards in Claude on the web, Desktop and mobile.
+
 #### ChatGPT
 
 Install the [viral.app plugin for ChatGPT](https://chatgpt.com/plugins/plugin_asdk_app_6a8713d41dc48191b33e75c49a764db3).
+
+- **Cards:** results render as interactive cards in the chat; ChatGPT desktop also offers viral.app as a sidebar app with a conversation panel.
+- **Events:** in Work chats (ChatGPT web, or the desktop app with Cloud selected) and in dots, ask ChatGPT to watch viral.app for something and say what to do, for example "Whenever a creator applies to my Habit Tracker job, summarize the application and draft a reply for me to approve." ChatGPT subscribes through viral.app's [MCP Events](https://developers.openai.com/plugins/build/mcp-events) and viral.app delivers each matching event to that chat. Chat, application and payout events arrive within about a minute; new-video and view-milestone events follow each account's sync cadence (hours). Ask ChatGPT to stop monitoring to end a subscription.
 
 #### Grok
 
@@ -82,7 +87,7 @@ copilot plugin install viral-app@viral-app
 
 #### VS Code
 
-Install the plugin (MCP server and skill) through agent plugins. Add the marketplace to your user settings:
+Install the plugin (MCP server and skills) through agent plugins. Add the marketplace to your user settings:
 
 ```json
 "chat.plugins.enabled": true,
@@ -111,7 +116,7 @@ Or add to `.cursor/mcp.json`:
 { "mcpServers": { "viral_app": { "type": "http", "url": "https://viral.app/api/mcp" } } }
 ```
 
-This repo also ships a Cursor plugin manifest (`.cursor-plugin/`) that bundles the MCP server and skill for the Cursor Marketplace.
+This repo also ships a Cursor plugin manifest (`.cursor-plugin/`) that bundles the MCP server and skills for the Cursor Marketplace.
 
 #### Gemini CLI
 
@@ -127,7 +132,7 @@ Restart Gemini CLI, then run `/mcp auth viral_app` to sign in.
 qwen extensions install fmd-labs/viral-app-agents:viral-app
 ```
 
-You get the MCP server and the skill; check the connection with `/mcp`.
+You get the MCP server and the skills; check the connection with `/mcp`.
 
 #### Kiro
 
@@ -165,7 +170,7 @@ The CLI refuses to install a plugin until you pass `--trust`.
 
 ### MCP server only
 
-These clients get the MCP server without the bundled skill.
+These clients get the MCP server without the bundled skills.
 
 #### Augment and Auggie
 
@@ -216,7 +221,7 @@ goose://extension?type=streamable_http&url=https%3A%2F%2Fviral.app%2Fapi%2Fmcp&i
 
 In the CLI: `goose configure`, Add Extension, Remote Extension (Streamable HTTP), URL `https://viral.app/api/mcp`.
 
-To add the usage skill as well, run `goose plugin install https://github.com/fmd-labs/viral-app-agents.git`. Goose loads it as `viral-app:viral-app-mcp`.
+To add the skills as well, run `goose plugin install https://github.com/fmd-labs/viral-app-agents.git`. Goose loads them as `viral-app:viral-app-mcp`, `viral-app:ugc-reporting`, and so on.
 
 #### Zed
 
@@ -246,34 +251,53 @@ vibe mcp add viral_app --url https://viral.app/api/mcp
 
 Point the client at `https://viral.app/api/mcp` with streamable HTTP and OAuth. The server publishes standard OAuth discovery metadata and supports dynamic client registration, so no pre-shared credentials are needed. Its [official MCP Registry](https://registry.modelcontextprotocol.io) name is `io.github.fmd-labs/viral-app`.
 
+## Skills
+
+Plugins bundle five skills. Agents load them on demand, and each keeps longer material in a `references/` folder next to it.
+
+| Skill | Use it for |
+| --- | --- |
+| `viral-app-mcp` | The core guide: connecting and auth, the credit quote-then-confirm flow, rules for writes that reach creators, ids and units, what MCP cannot do, and which skill to load next |
+| `ugc-reporting` | Weekly or monthly UGC reports, KPI and leaderboard recipes with period-over-period change, cards in Claude and ChatGPT, Slack summaries, recurring reports through scheduled tasks or a ChatGPT page |
+| `creator-campaigns` | Creator Hub end to end: briefs in markdown, campaigns with the preview step, creator assignment, job drafts and publishing, applications, creator chat, and payout reads |
+| `viral-research` | The viral video library, similar videos, hook and scene breakdowns, AI analysis of tracked videos, live lookups, and turning findings into hooks and a brief |
+| `ugc-automations` | "Watch for X and do Y": MCP Events in ChatGPT, polling fallbacks for other clients, latency per event, and handling untrusted creator text |
+
 ## What's inside
 
 | Path | Purpose |
 | --- | --- |
-| `.claude-plugin/marketplace.json` | Claude-format marketplace catalog (Claude Code, Copilot CLI, VS Code, Factory, Grok Build) |
+| `.claude-plugin/marketplace.json` | Claude-format marketplace catalog (Claude Code, Copilot CLI, VS Code, Factory, Grok Build). Lists `viral-app` |
 | `.agents/plugins/marketplace.json` | Codex marketplace catalog |
 | `.cursor-plugin/marketplace.json` | Cursor marketplace catalog (Cursor, Grok Bot) |
 | `gemini-extension.json` | Gemini CLI extension manifest (Gemini CLI, Qwen Code) |
-| `plugin.json` | Agent Plugins 1.0 manifest for the repository root (Kiro, Mistral Vibe, and Copilot CLI or Devin when the repository root is installed directly; Goose imports only the skill) |
+| `plugin.json` | Agent Plugins 1.0 manifest for the repository root (Kiro, Mistral Vibe, and Copilot CLI or Devin when the repository root is installed directly; Goose imports only the skills) |
 | `mcp.json` | Agent Plugins 1.0 MCP config for the repository root (read with `plugin.json`) |
-| `skills/viral-app-mcp/SKILL.md` | Copy of the plugin skill for the root-level packages (Gemini CLI, Agent Plugins). Keep it identical to `plugins/viral-app/skills/viral-app-mcp/SKILL.md` |
+| `skills/` | Copy of the plugin skills for the root-level packages (Gemini CLI, Agent Plugins). Generated from `plugins/viral-app/skills/` with `scripts/sync-skills.sh` |
 | `server.json` | Official MCP Registry entry `io.github.fmd-labs/viral-app` |
 | `.github/workflows/publish-mcp-registry.yml` | Validates `server.json` on pull requests and publishes it to the MCP Registry from `main` via GitHub OIDC |
 | `plugins/viral-app/.claude-plugin/plugin.json` | Claude-format plugin manifest with the MCP server inline (Claude Code, Copilot CLI, VS Code, Devin, Grok Build) |
 | `plugins/viral-app/.codex-plugin/plugin.json` | Codex plugin manifest |
 | `plugins/viral-app/.cursor-plugin/plugin.json` | Cursor plugin manifest |
 | `plugins/viral-app/.mcp.json` | Claude-format MCP config (Codex, Factory, Grok Build; Claude Code merges it with the inline entry) |
-| `plugins/viral-app/skills/viral-app-mcp/SKILL.md` | The `viral-app-mcp` usage skill (canonical copy) |
+| `plugins/viral-app/skills/` | The five skills (canonical copy) |
+| `scripts/sync-skills.sh` | Copies `plugins/viral-app/skills/` to `skills/`; `--check` fails when they differ |
+| `scripts/build-chatgpt-package.sh` | Builds `dist/viral-app-chatgpt.zip` for OpenAI's plugin dashboard (Upload new version): the Codex manifest, `.mcp.json`, skills and assets of `plugins/viral-app`, checked against OpenAI's package rules, without the Claude and Cursor manifests |
 | `plugins/viral-app/assets/` | Plugin logo (`logo.svg`, `logo.png` at 400x400) |
 
-When releasing, bump `version` together in `plugin.json`, `gemini-extension.json`, `plugins/viral-app/.claude-plugin/plugin.json`, `plugins/viral-app/.codex-plugin/plugin.json`, `plugins/viral-app/.cursor-plugin/plugin.json`, and the plugin entries in `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json` (`grep -rn '"version"' --include=*.json .` lists them). Check that the two skill copies still match with `diff -r skills/viral-app-mcp plugins/viral-app/skills/viral-app-mcp`. `server.json` has its own version; the MCP Registry rejects a version it has already published, so bump it with every change to that file.
+When releasing:
+
+- Bump the `viral-app` `version` together in `plugin.json`, `gemini-extension.json`, `plugins/viral-app/.claude-plugin/plugin.json`, `plugins/viral-app/.codex-plugin/plugin.json`, `plugins/viral-app/.cursor-plugin/plugin.json`, and its entries in `.claude-plugin/marketplace.json` and `.agents/plugins/marketplace.json` (`grep -rn '"version"' --include=*.json .` lists them).
+- Edit skills only in `plugins/viral-app/skills/`, then run `scripts/sync-skills.sh` (`--check` verifies the copies match).
+- For ChatGPT, run `scripts/build-chatgpt-package.sh` and upload `dist/viral-app-chatgpt.zip` as a new version in the [OpenAI plugin dashboard](https://platform.openai.com/plugins). The script writes the published plugin's package name (`app-6a8713d41dc48191b33e75c49a764db3`) into the ZIP's manifest, because the dashboard refuses any other name. Changes to the hosted MCP server need no upload; manifest and skill changes do.
+- `server.json` has its own version; the MCP Registry rejects a version it has already published, so bump it with every change to that file.
 
 ## Auth and security
 
 - OAuth is the default. During consent you pick one organization; the grant is scoped to it permanently. Review or revoke authorized clients at [viral.app/app/user/settings/security](https://viral.app/app/user/settings/security).
 - API keys are only for advanced setups where one agent must switch between multiple organizations. Create them per organization in the viral.app dashboard.
 - This repository contains no secrets and never will. It only ships public configuration pointing at the viral.app endpoint; all credentials are issued at runtime through OAuth in your own browser.
-- Tools that spend viral.app credits (live lookups, refreshes) quote their cost first and only execute when called again with explicit confirmation.
+- Tools that spend viral.app credits (live lookups, refreshes, video analysis) quote their cost first and only execute when called again with explicit confirmation.
 
 ## Support and privacy
 
