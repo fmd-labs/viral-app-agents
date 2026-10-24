@@ -30,12 +30,12 @@ Base URL, keys, the header for sub-orgs, query syntax (`languages[]=en`; with cu
 ```bash
 curl -G https://viral.app/api/v1/library/viral-videos \
   -H "x-api-key: $VIRAL_APP_API_KEY" \
-  --data-urlencode "search=student panics about a deadline, then opens a planner app" \
+  --data-urlencode "search=college study planner app" \
   -d 'languages[]=en' -d limit=12
 ```
 
 - `data[]` items carry `id` (`orgrsv_…`, the id to attach), `platform`, `platformVideoId`, `accountUsername`, `thumbnailUrl`, `viewCount`, `outlierFactor`, `formatPrimary`, `hookArchetype`, `hookTextOverlay`, `whyItWorked` and `replicationTip`. Facet values are snake_case ids: write them in plain words in the brief.
-- The default sort ranks a search by relevance; keep it. An empty `data` means the library has nothing on the topic (`related=true` tops a thin result up with related videos, flagged `relatedMatch`).
+- The default sort ranks a search by relevance; keep it. Use 3 to 6 words: long sentences match nothing. An empty `data` after one shorter retry means the library has nothing on the topic (`related=true` tops a thin result up with related videos, flagged `relatedMatch`).
 - Filters: `formats[]`, `hookArchetypes[]`, `productTypes[]`, `verticals[]`, `languages[]` (ISO 639-1, the language in the video; omitted, every language), `platform` (`tiktok`, `instagram`), `dateRange` (`all`, `7d`, `14d`, `30d`), `minViews`, `minOutlierFactor`; `limit` up to 60, paging with `offset` / `nextOffset`. Filter values: `viral-research/references/library-filters.md`.
 - More of one kind: `GET /library/viral-videos/{videoId}/similar?limit=8` (up to 24).
 
@@ -69,7 +69,7 @@ curl https://viral.app/api/v1/briefs/orgbrief_AbCdEf123456/samples -H "x-api-key
 ```
 
 - `name` is internal (creators never see it), unique per organization (409 `DUPLICATE_TITLE`), max 150 characters. `contentMarkdown` max 50,000; an unknown `$variable` is refused (400 `CONTENT_INVALID`), a price like `$10` is fine.
-- Samples append after the brief's existing ones, in the order sent; videos the brief already lists are skipped. Library videos are tracked as reference-only samples (hidden from analytics and payouts) and count against the tracked-videos limit (402 when the plan has no room). Labels max 60 characters. Up to 50 videos per call; keep a brief at 10 or fewer.
+- Samples append after the brief's existing ones, in the order sent; videos the brief already lists are skipped (the answer counts `addedCount` and `skippedCount`). Library videos are tracked as reference-only samples (hidden from analytics and payouts) and count against the tracked-videos limit (402 when the plan has no room). Labels max 60 characters. Up to 50 videos per call; keep a brief at 10 or fewer.
 - A library video that left the library fails the whole call with 404 `LIBRARY_VIDEO_NOT_FOUND`, listing it in `data.libraryVideoIds`: drop those ids and send the rest again.
 - `POST /briefs` can also take the audience (`campaignIds`, `creatorIds`, `allCreators`) directly; setting it in a separate step after the user confirms keeps the draft a draft.
 
@@ -86,7 +86,7 @@ curl -X PUT https://viral.app/api/v1/briefs/orgbrief_AbCdEf123456/audience -H "x
 - `PATCH /briefs/{id}/creators` with `add` / `remove` (org creator ids, up to 500 per call) changes single creators without touching the rest. Not available on a brief for everyone at the organization.
 - `notify: true` sends the creators it newly reaches a chat message and an email. Everyone it reaches has to read it on their next visit either way.
 - `PUT /briefs/{id}` changes only the fields it is sent. `sampleVideos`, when sent, is the complete new list (read `GET /briefs/{id}` first and copy each entry's `orgAccountId`, `platform`, `platformVideoId`, `url` and `label`); omitted, the samples stay. `notify: true` bumps the version and every creator in the audience must read it again; `notify: false` saves in place.
-- `notifiableCreatorCount` (on `GET /briefs/{id}` and brief writes) is how many creators a notify on an edit or a sample change would reach right now. It decides the notify question for `PUT /briefs/{id}` and `POST /briefs/{id}/samples` only; for audience changes, count the joined creators the change newly reaches.
+- `notifiableCreatorCount` (on `GET /briefs/{id}`; writes return only `id` and `version`) is how many creators a notify on an edit or a sample change would reach right now. It decides the notify question for `PUT /briefs/{id}` and `POST /briefs/{id}/samples` only; for audience changes, count the joined creators the change newly reaches.
 
 ## Events
 

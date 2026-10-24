@@ -56,16 +56,24 @@ What a creator reads before applying: 150 to 350 words, plain words, written to 
 | Section | What goes in |
 | --- | --- |
 | `## About the product` | What it is, who it is for, why people like it (2 to 3 sentences). |
-| `## What you'll do` | The content itself: format, roughly how much, where it gets posted. |
+| `## What you'll do` | The content itself: format, roughly how much in words ("several videos a week"; the exact numbers are requirement fields), where it gets posted. |
 | `## Who you are` | The person this fits, in human terms. The hard requirements (countries, languages, minimum age, weekly volume) are fields that render as their own block: never repeat them as a checklist. |
 | `## What you get` | Everything besides money: the product, creative freedom, feedback, the chance of ongoing work. |
-| `## How we work together` | Briefs, approvals, reporting, how fast the brand replies. |
+| `## How we work together` | Briefs, approvals, reporting, how fast the brand replies: only what the user told you, never an approval step or reply time they did not give. |
 
 - Never restate pay or rates in the body: amounts render from the payment fields, and a body that contradicts them reads as bait-and-switch. The one exception: when the user named the bonus milestones, one line under "What you get", the highest tier matching `bonusAmount`.
-- Example videos and hooks from the research are inspiration at most: put their links in `exampleVideoUrls` (they become the posting's example tiles), not in the text.
+- Example videos and hooks from the research are inspiration at most: put their links in `exampleVideoUrls` (they become the posting's example tiles), not in the text. Library results carry no link: build it from the result, `https://www.tiktok.com/@{accountUsername}/video/{platformVideoId}` or `https://www.instagram.com/reel/{platformVideoId}/`.
 - Markdown: `##`/`###` headings, paragraphs, bold, italic, links, `- ` bullets, `1. ` lists. No tables, code or quotes.
 
-Show the whole draft (body, pay line, hard requirements, example videos), ask "Does the draft look right?", and `create_job` on a yes.
+Show the whole draft (body, pay line, hard requirements, example videos), ask "Does the draft look right?", and `create_job` on a yes. There is no dry run for jobs: the saved draft, which creators do not see, is the check.
+
+## The fields
+
+- Required: `productTitle`, `productDescription` (max 300 characters), `productNiches`, `jobType`, `currency` and `payFrequency`; set only the pay amounts the user agreed to. `payFrequency` (`one_time`, `per_day`, `per_week`, `per_month`) is `per_month` unless the user says otherwise: most jobs pay monthly.
+- `productNiches`: `ai_software`, `beauty`, `business`, `dating_relationships`, `education`, `entertainment`, `fashion`, `finance`, `fitness`, `food_drink`, `gaming`, `health_wellness`, `home_diy`, `kids_family`, `lifestyle`, `music`, `pets`, `productivity`, `spirituality`, `sports`, `tech`, `travel`, `other`.
+- `platformFocus`: `tiktok`, `instagram`, `youtube`, `facebook`, `snapchat`. `contentFormats` (empty accepts any): `talking_head`, `faceless_clipping`, `unboxing`, `product_demo`, `lifestyle_vlog`, `review_testimonial`, `tutorial_how_to`, `skit_storytelling`, `ai_ugc`, `other`.
+- `accountType` (`new_account`, `personal_account`, `company_account`): Canvas UGC means a dedicated account, so `new_account` fits it; set it only when the user agrees.
+- Weekly volume goes in `minWeeklyVideos`, countries in `countryResidences` (ISO3, e.g. `USA`), languages in `languages` (ISO 639-1). Field rules beyond these: `jobs-and-applications.md`.
 
 ## Publishing
 
