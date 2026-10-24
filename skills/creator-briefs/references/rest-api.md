@@ -4,9 +4,7 @@ For agents with an API key instead of MCP, for example one that runs on webhooks
 
 ## Requests
 
-- Base URL `https://viral.app/api/v1`, key in the `x-api-key` header. Keys are created per organization at https://viral.app/app/org/api/keys.
-- Partners that run one sub-organization per app or customer get a partner key from viral.app (a key created in the dashboard cannot manage sub-orgs). Add `x-va-organization-id: <sub-org id>` to act inside one sub-org; without it the key acts on the partner's own organization. `GET /sub-orgs` lists every sub-org with its `externalId`. Partner reference: https://viral.app/api/v1/partners/docs.
-- Query arrays and objects use brackets: `languages[]=en`, `dateRange[from]=2026-07-26`. With curl, pass them through `-G -d` (or add `-g`): curl reads brackets in a URL as a glob otherwise.
+Base URL, keys, the header for sub-orgs, query syntax (`languages[]=en`; with curl use `-G -d`) and errors: `viral-app-mcp/references/rest-api.md`.
 
 ## Routes
 
@@ -92,7 +90,7 @@ curl -X PUT https://viral.app/api/v1/briefs/orgbrief_AbCdEf123456/audience -H "x
 
 ## Events
 
-Webhook events for an agent that reacts instead of polling (subscribe in the dashboard's Webhooks tab, or partners with `POST /webhooks` and `includeChildOrgs: true`):
+Webhook events for an agent that reacts instead of polling (subscribe in the dashboard's Webhooks tab, or a sub-org key with `POST /webhooks` and `includeChildOrgs: true`):
 
 - `brief.published`: a brief reached creators. `data.kind` is `created`, `updated` or `assigned`; `data.brief` carries `id`, `name`, `version`, `campaignIds`, `creatorIds`, `allCreators` and `lastNotifiedAt`.
 - `brief.read`: a creator read a version for the first time. `data.briefId`, `data.version`, `data.creator.userId`, `data.creator.orgCreatorId`, `data.readAt`.

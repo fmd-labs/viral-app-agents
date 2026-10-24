@@ -16,7 +16,7 @@ Show the full draft (title, pay in major units, requirements, body) before `crea
 ## Publish, pause, edit, copy
 
 - `set_job_status`: `"public"` publishes a draft or resumes a paused job; `"paused"` pauses. Publish only after the user says so.
-- `update_job` is a FULL replace: `get_job` first and send every field back with the changes; a field left out is cleared. `sampleVideos` and `exampleVideos` keep their saved lists when omitted. Edits to a public job are live at once: show the change first.
+- `update_job` is a FULL replace: `get_job` first and send every field back with the changes; a field left out is cleared. Send the text as `bodyMarkdown` only (never also `body`), copy `challengeBriefMarkdown` and `videoSubmissionRequired` unchanged, and leave `sampleVideos` and `exampleVideos` out to keep their saved lists (sent, they override `exampleVideoUrls`). Edits to a public job are live at once: show the change first.
 - `duplicate_job` copies a job into a new draft with a new `productTitle`.
 - `count_jobs` and `list_jobs` (`statuses`, `search`) for overviews.
 - Matching creators to a job (Jobs Discovery) is dashboard-only.

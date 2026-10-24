@@ -1,6 +1,6 @@
 ---
 name: viral-app-mcp
-description: Core guide to the viral.app MCP server (UGC and creator-marketing analytics for TikTok, Instagram, YouTube, Facebook and Snapchat, plus the Creator Hub). Use whenever a task touches viral.app data or actions, to connect and authenticate the server, pick among its 100+ tools, follow the credit quote-then-confirm flow, get ids, units and date formats right, know what MCP cannot do, and load the specialized skill for the job (ugc-reporting, creator-briefs, creator-campaigns, viral-research, ugc-automations). Not needed for general social-media advice that uses no viral.app data.
+description: Core guide to the viral.app MCP server (UGC and creator-marketing analytics for TikTok, Instagram, YouTube, Facebook and Snapchat, plus the Creator Hub). Use whenever a task touches viral.app data or actions, to connect and authenticate the server, pick among its 100+ tools, follow the credit quote-then-confirm flow, get ids, units and date formats right, know what MCP cannot do, and load the specialized skill for the job (ugc-reporting, creator-briefs, creator-management, creator-campaigns, viral-research, ugc-automations). Not needed for general social-media advice that uses no viral.app data.
 ---
 
 # viral.app MCP
@@ -19,7 +19,8 @@ viral.app tracks UGC performance across TikTok, Instagram, YouTube, Facebook and
 | --- | --- |
 | Know how content, accounts, creators or campaigns performed; a weekly or monthly report; a recurring report | `ugc-reporting` |
 | Write a brief or find sample videos for one | `creator-briefs` |
-| Create or change a campaign, assign creators, post a job, answer applications, chat with creators, check payouts | `creator-campaigns` |
+| Add creators (one or a CSV), invite them, link their accounts, chat, broadcast, nudge, audit the roster | `creator-management` |
+| Create or change a campaign, assign creators, post a job, answer applications, check payouts | `creator-campaigns` |
 | Find what works in a niche, hooks, formats, similar videos, analyze a video's content | `viral-research` |
 | Be alerted or have the agent act when something happens (new application, message, payout due, milestone); MCP Events (`events/list`) | `ugc-automations` |
 
@@ -27,6 +28,7 @@ viral.app tracks UGC performance across TikTok, Instagram, YouTube, Facebook and
 
 - OAuth is the default. The user signs in in the browser and picks ONE organization; the grant stays scoped to it. In Claude Code: `/mcp`, select `viral_app`, authenticate. In Codex: `codex mcp login viral_app`.
 - Do not ask for an API key or add an `x-api-key` header unless the user needs one agent to switch between several organizations. API keys are created per organization at https://viral.app/app/org/api/keys and carry that organization's scope.
+- Agents without MCP (an API key, webhooks, schedules) call the same procedures over REST: `references/rest-api.md`.
 - MCP needs a plan with API access. `UNAUTHORIZED` means the grant was revoked or the membership ended: re-authenticate, do not retry. `FORBIDDEN` names the missing role, scope or plan feature: tell the user.
 
 ## Rules for every tool
@@ -74,7 +76,7 @@ More examples per card: `references/cards.md`.
 
 ## Not available over MCP
 
-Jobs Discovery (matching creators to jobs), starting or initiating payouts, canceling or reinstating payouts, deleting tracked accounts, and ad boosts. Point the user to the viral.app dashboard for these.
+Jobs Discovery (matching creators to jobs), starting or initiating payouts, canceling or reinstating payouts, deleting tracked accounts, and ad boosts. Point the user to the viral.app dashboard for these. Group chats, broadcasts, marking a thread read, editing a creator's name or email and linking a single account exist over REST only (`references/rest-api.md`).
 
 ## Tool map
 
