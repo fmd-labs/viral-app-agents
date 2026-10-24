@@ -6,6 +6,7 @@ For agents that call viral.app with an API key instead of MCP, for example one t
 
 - Base URL `https://viral.app/api/v1`, key in the `x-api-key` header. Keys are created per organization at https://viral.app/app/org/api/keys and need a plan with API access.
 - Query arrays and objects use brackets: `languages[]=en`, `campaignIds[]=orgcamp_…`, `dateRange[from]=2026-07-26`. With curl, pass them through `-G -d` (or add `-g`): curl reads brackets in a URL as a glob otherwise.
+- List responses differ per route (`items` with `nextPageToken`, `data` with `page` and `total`, `threads`): read the shape in the reference.
 - Writes that reach creators take idempotency keys (`clientMessageId` per chat message, `broadcastId` per broadcast); campaign and custom-rate writes take the `previewHash` of their dry run.
 
 ## Partners with sub-organizations

@@ -18,7 +18,7 @@ Base URL, keys, the partner header and query syntax: `viral-app-mcp/references/r
 | Applicant's handles | `get_application` | `GET /applications/{id}` (`socialAccounts`) |
 | Direct thread | `start_creator_chat` | `POST /chat/threads` (`orgCreatorId` or `creatorUserId`) |
 | Send a message | `send_chat_message` | `POST /chat/threads/{chatId}/messages` |
-| Inbox | `list_chat_threads`, `get_chat_unread_count`, `get_chat_messages`, `search_chat_messages` | `GET /chat/threads` (`scope=org`), `GET /chat/unread-count`, `GET /chat/threads/{chatId}/messages`, `GET /chat/threads/{chatId}/search` |
+| Inbox | `list_chat_threads`, `get_chat_unread_count`, `get_chat_messages`, `search_chat_messages` | `GET /chat/threads` (`scope=org`), `GET /chat/unread-count` (`scope=org`), `GET /chat/threads/{chatId}/messages`, `GET /chat/threads/{chatId}/search` |
 | Mark read | (REST only) | `POST /chat/threads/{chatId}/read` (`lastMessageId`) |
 | Group chats | (REST only) | `POST /chat/groups`, `PATCH /chat/groups/{chatId}`, `POST` / `DELETE /chat/groups/{chatId}/members` |
 | Broadcast | (REST only) | `GET /chat/broadcasts/preview`, `POST /chat/broadcasts` |

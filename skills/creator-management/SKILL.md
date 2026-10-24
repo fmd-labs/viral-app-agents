@@ -36,7 +36,7 @@ One creator or a CSV, the same chain:
 
 1. **Read the input completely.** For a CSV go row by row: split cells that hold several handles, classify a link by its domain (tiktok.com, instagram.com, youtube.com, facebook.com, snapchat.com), not its column, never drop short or share links (resolve them first: `resolve_tiktok_short_url`; Facebook share links `resolve_facebook_share_urls`, MCP only), and report every row you skip with the reason. Show what you found and the plan, and wait for a go.
 2. **Dedupe on email.** `list_creators` with `search` set to the email, or let the create answer 409 `CREATOR_ALREADY_EXISTS`. Existing creators get their accounts linked instead of a new record.
-3. **Track the handles**: `add_tracked_accounts` with `platform`, `username` and `max_videos` (allowed values 10, 30, 60, 100, 200, 300, 400, 500, 1000, 2000 or 999999999 for unlimited; 0 pauses tracking and needs the Data Retention feature). Send them without diffing first: already-tracked ones come back under `alreadyTracked`. Keep about 50 to 100 new handles per call. Validation is all or nothing: remove exactly the entries it names and retry once. A plan limit answers 402 `PLAN_LIMIT_REACHED`: stop and tell the user.
+3. **Track the handles**: `add_tracked_accounts` with `platform`, `username` and `max_videos` (allowed values 10, 30, 60, 100, 200, 300, 400, 500, 1000, 2000 or 999999999 for unlimited; 0 pauses tracking and needs the Data Retention feature). Send them without diffing first: already-tracked ones come back under `alreadyTracked`. Keep about 50 to 100 new handles per call. Validation is all or nothing: remove exactly the entries it names and retry once. A plan limit answers 402 `PLAN_LIMIT_REACHED`: stop tracking and tell the user. The creator record can still be created without accounts (`accountIds: []`); report which handles still need tracking.
 4. **Get the `orgacc_` ids**: `list_tracked_accounts` (the add response only has ids for accounts that resolved at once).
 5. **Create the record**: `create_creator` with `firstName`, `lastName`, `email`, `accountIds`, optional `notes`, and `invite: false` unless the user said to invite (then state the exact email first).
 6. Report created, linked, skipped and failed rows in one summary.
@@ -78,7 +78,7 @@ One pass, then a short report with counts and the creators behind each:
 | --- | --- | --- |
 | Roster | `list_creators` | `status` per creator; pending and expired invitations (`invitation.expiresAt` in the past) |
 | Accounts | `list_creators` | `warnings`: `no_account`, `account_sync_error`, `tracking_paused` |
-| Creator seats | `get_usage_meter` `active_creators` | `quantities.current` vs `quantities.benefited` |
+| Creator seats | `get_usage_meter` `active_creators` | `quantities.current` vs `quantities.benefited`; in a sub-org family the meters show the whole family's usage (limits are shared), and `GET /sub-orgs` has each sub-org's `activeCreators` and `activeJobs` |
 | Assignments | `list_creators`, `list_campaigns` | creators without a current assignment (`activeCampaign`), campaigns without a brief |
 | Pace | `get_campaign_activity` | creators behind schedule in the current period |
 | Briefs | `get_brief_read_status` (`unread`) per active brief | creators who have not read the current version |

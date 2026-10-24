@@ -16,7 +16,7 @@ Over MCP, load `viral-app-mcp` first if its conventions are not in context. Over
 3. **Samples carry the brief.** 3 to 5 sample videos, at most 10, spanning different hooks or formats: a brief built on several hooks is the norm. Pick for the angle, not the biggest view count.
 4. **Draft, then one question.** Show the complete brief, ask "Does the brief look right?", and write only on a yes. A change gets a new draft and the same question.
 5. **Reading is mandatory for creators.** Every creator a brief reaches must read it on their next visit (the app blocks until they confirm). Who reads it is the user's call. Creating a brief never notifies. Whether to notify (a chat message plus an email) is asked once, and only when someone would receive it:
-   - `update_brief` and `add_brief_sample_videos`: ask when the brief's `notifiableCreatorCount` (from `get_brief` or the last write) is above 0; at 0, write silently.
+   - `update_brief` and `add_brief_sample_videos`: ask when the brief's `notifiableCreatorCount` (from `get_brief`) is above 0; at 0, write silently.
    - `set_brief_audience` and `update_brief_creators`: ask about the creators the change newly reaches who have already joined (campaign counts from `list_campaigns`, creators from `list_creators`); when none of them has joined, stay silent. Ask in the same round as the audience itself.
 6. **Never restate campaign settings.** Pay, video targets, platforms and dates live on the campaign; reference them with variables when the brief needs them (`references/brief-writing.md`).
 7. **Unattended runs.** An agent running on a webhook or a schedule with nobody to answer creates drafts only: `notify: false`, no audience. It shares or notifies only on a standing instruction the user stated (for example "link every new brief to its app's campaign and notify the creators"). A question nobody can answer means "not now".
@@ -29,19 +29,19 @@ Over MCP, load `viral-app-mcp` first if its conventions are not in context. Over
    - Who should read it? Everyone at the brand (creators who join later too) · up to 3 campaigns without a brief · specific creators · not now (a draft; the default).
 3. **Round 2**, one round per path:
    - From zero: the product (rule 1), always asked, then as the niche path.
-   - Viral videos in my niche: the product when the accounts do not settle the niche, then the library search, the candidates, and the one thing the viewer should do after watching.
-   - My creators' best videos: the tracked-videos search, the candidates, and the one thing the viewer should do.
+   - Viral videos in my niche: the product when the accounts do not settle the niche, then the library search, the candidates, the one thing the viewer should do after watching, and anything that must be in or out (optional).
+   - My creators' best videos: the tracked-videos search, the candidates, the one thing the viewer should do, and anything that must be in or out (optional).
    - Better structure: the one thing the viewer should do, and what must be in or out ("nothing special" is a fine answer), then the tracked-videos search.
-   The viewer's action becomes the call to action and "The one idea"; the in/out answer fills "Must include" and "Avoid".
+   The viewer's action becomes the call to action and "The one idea"; the in/out answer fills "Must include" and "Avoid" (without one: the product moment and an ad disclosure in, claims you cannot back up out).
 4. **Find samples**, one search per source, then decide from what came back:
-   - Viral library: `search_viral_video_library` with the niche and the angle in plain words in `search` ("a student panics about a deadline, then opens a planner app"), `limit` 12, default sort (relevance). Pass `languages` for the language the videos should be in (for example `["en"]`): without it the API searches every language. Results carry `formatPrimary`, `hookArchetype`, `hookTextOverlay`, `whyItWorked` and `replicationTip`.
+   - Viral library: `search_viral_video_library` with 3 to 6 words for the niche and the angle in `search` ("college study planner app", "syllabus deadline panic"), `limit` 12, default sort (relevance). Long sentences match nothing: an empty result gets one retry with fewer words or `related: true` before you conclude the library has nothing. Pass `languages` for the language the videos should be in (for example `["en"]`): without it the API searches every language. Results carry `formatPrimary`, `hookArchetype`, `hookTextOverlay`, `whyItWorked` and `replicationTip`.
    - Own tracked videos: `get_top_videos` over the last 90 days, `metric: "viewCountInPeriod"`, `limit` 20.
    - A source with nothing on the product: say so in one line and use the other one.
    - Show 3 to 5 candidates (cards in clients with UI), one line each on what it shows a creator, then ask which to attach. "More like this one": `find_similar_viral_videos`. One standout to study: `get_viral_video_insights`. Say facet values in plain words ("curiosity gap", not `curiosity_gap`).
 5. **Write the brief** (`references/brief-writing.md`): 200 to 350 words, the fixed sections, each pick labeled ("Money-glitch hook") and referenced by number under "Learn from the samples". The `name` is internal (creators never see it): product plus angle, for example "Plannr: deadline panic". Show the brief in full, ask rule 4's question.
 6. **Create on yes**:
    - `create_brief` with `name`, `contentMarkdown`, `notify: false`.
-   - `add_brief_sample_videos`: library picks by `libraryVideoId` (`orgrsv_…`), tracked picks by `platform` + `platformVideoId` (+ `orgAccountId`), each with its `label`, in the order the brief numbers them. A library video that left the library fails the call (`LIBRARY_VIDEO_NOT_FOUND` with its ids): drop it, renumber the brief, retry with the rest.
+   - `add_brief_sample_videos`: library picks by `libraryVideoId` (`orgrsv_…`), tracked picks by `platform` + `platformVideoId` (+ `orgAccountId`), each with its `label`, in the order the brief numbers them. A library video that left the library fails the call (`LIBRARY_VIDEO_NOT_FOUND` with its ids): drop it, renumber the brief, retry with the rest. Any other failure (402: the plan has no room to track more videos) leaves the brief citing samples it lacks: keep it a draft, tell the user, and never share it like that.
    - Audience, unless "not now": `set_brief_audience` (everyone, campaigns, creators). Name who will have to read it and how many before the call, with the notify question by rule 5.
 7. **After**: show the brief (a `brief` card with the id in clients with UI). `get_brief_read_status` shows who read it; nudge unread creators with a chat message, never a second notify.
 
