@@ -21,7 +21,7 @@ A campaign defines how assigned creators are paid per payout cycle. Every write 
 
 ## Sanity ranges (live campaigns, per payout cycle)
 
-When a number the user gives falls outside these, say so once and confirm before writing; never suggest numbers on your own: base payout per video 5 to 35 USD (median 14) or 5 to 20 EUR (median 10); CPM 0.5 to 3 USD per 1,000 views (median 1) or 0.1 to 2 EUR; fixed salary 150 to 6,000 USD a month (median 500); flat bonus roughly 10 at 10k views, 50 at 50k, 100 at 100k, 200 at 500k, 500 at 1M; video target 4 to 90 per month (median 30) or 3 to 28 per week (median 5).
+When a number the user gives falls outside these, say so once and confirm before writing; never suggest numbers on your own (the typical figures to show before asking are the benchmark lines in `campaign-setup.md`): base payout per video 5 to 35 USD (median 14) or 5 to 20 EUR (median 10); CPM 0.5 to 3 USD per 1,000 views (median 1) or 0.1 to 2 EUR; fixed salary 150 to 6,000 USD a month (median 500); flat bonus roughly 10 at 10k views, 50 at 50k, 100 at 100k, 200 at 500k, 500 at 1M; video target 4 to 90 per month (median 30) or 3 to 28 per week (median 5).
 
 ## Create
 

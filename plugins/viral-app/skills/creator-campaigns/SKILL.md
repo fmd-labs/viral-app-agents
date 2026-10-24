@@ -1,15 +1,15 @@
 ---
 name: creator-campaigns
-description: Run viral.app Creator Hub workflows end to end. Write and publish briefs in markdown, create, change, end or copy campaigns through the required preview step, assign creators, draft and publish job postings, review and answer applications, chat with creators, and read payouts (due, upcoming, paid, breakdowns). Use for any campaign, brief, job posting, application, creator roster, creator chat or payout question in viral.app. Starting or canceling payouts and Jobs Discovery are dashboard-only.
+description: Run viral.app Creator Hub workflows end to end. Link briefs to campaigns (writing one is creator-briefs), create, change, end or copy campaigns through the required preview step, assign creators, draft and publish job postings, review and answer applications, and read payouts (due, upcoming, paid, breakdowns). Use for any campaign, brief link, job posting, application or payout question in viral.app; the creator roster and chat are creator-management. Starting or canceling payouts and Jobs Discovery are dashboard-only.
 ---
 
-# Creator Hub: briefs, campaigns, jobs, applications, chat, payouts
+# Creator Hub: campaigns, jobs, applications, payouts
 
 Load `viral-app-mcp` first if its conventions (ids, units, credits) are not in context yet.
 
 ## Ground rules
 
-1. **People see what you send.** Messages, invitations, application replies, assignments and brief notifications reach creators by email or in the app. Before any of these calls, show the recipients and the exact text and get a yes. Set `notify: true` only when the user asked to notify.
+1. **People see what you send.** Messages, invitations, application replies, assignments and brief notifications reach creators by email or in the app. Before any of these calls, show the recipients and the exact text and get a yes. Set `notify: true` only when the user agreed to notify: ask once, and only when someone would receive it.
 2. **Preview before every campaign write.** `preview_campaign` returns sentences (`summary`), alerts (`warnings`) and `previewHash`. Show the sentences and alerts, then pass the hash to `create_campaign` or `update_campaign`. `ok: false` lists issues at spec paths: fix and preview again.
 3. **Never invent pay terms.** Amounts, video targets, dates and the payout anchor (`rolling` or `fixed`) come from the user. Ask for what is missing in one round.
 4. **Markdown only.** Briefs: `contentMarkdown`. Jobs: `bodyMarkdown` and `challengeBriefMarkdown`. Show the full draft first.
@@ -21,17 +21,17 @@ Load `viral-app-mcp` first if its conventions (ids, units, credits) are not in c
 
 ## Workflows
 
-**Brief** (`references/briefs-and-chat.md`): `list_briefs` → draft markdown with the user → `create_brief` (`notify: false` unless asked) → `add_brief_sample_videos` for tracked or viral-library examples → `set_brief_campaigns` or `briefId` on the campaign.
+**Brief**: load `creator-briefs` (product, sample videos, the brief's structure, audience and notify). Tool facts: `references/briefs-and-chat.md`.
 
-**Campaign** (`references/campaigns.md`): collect pay terms → `preview_campaign` (`spec`, or `fromJobId` / `fromCampaignId`) → show sentences and warnings → `create_campaign` with the returned spec and `previewHash`. Edits: `get_campaign` → `preview_campaign` with `id` and only the changes → show `changes` → `update_campaign`. End: `get_campaign_end_context` → consent question → `end_campaign`.
+**Campaign** (`references/campaign-setup.md` for the guided questions, benchmark lines, currency, conditions and pay changes incl. one creator's custom rates; `references/campaigns.md` for the spec): collect pay terms → `preview_campaign` (`spec`, or `fromJobId` / `fromCampaignId`) → show sentences and warnings → `create_campaign` with the returned spec and `previewHash`. Edits: `get_campaign` → `preview_campaign` with `id` and only the changes → show `changes` → `update_campaign`. End: `get_campaign_end_context` → consent question → `end_campaign`.
 
 **Assign creators**: `list_creators` → `get_assignment_options` → ask the start question when needed → one `assign_creators_to_campaign` call for all creators.
 
-**Job posting** (`references/jobs-and-applications.md`): `create_job` (draft) → show it → `set_job_status` `"public"` on approval. Edits: `get_job` → `update_job` with every field.
+**Job posting** (`references/job-posting.md` for the guided questions, benchmark lines, how to write the posting and the publish cap; `references/jobs-and-applications.md` for the fields): `create_job` (draft) → show it → `set_job_status` `"public"` on approval. Edits: `get_job` → `update_job` with every field.
 
 **Applications**: `count_applications` / `list_applications` (`jobIds`, `statuses`, `unreadOnly`) → `get_application` → draft the reply → `reply_to_application` with an optional status, or `open_application_chat` for a conversation.
 
-**Chat**: `list_chat_threads` (`scope: "org"`) or `get_chat_unread_count` → `get_chat_messages` → draft → `send_chat_message` after approval. `start_creator_chat` opens a direct thread with an invited creator.
+**Creators and chat**: adding creators (one or a CSV), invitations, linking accounts, direct and group chats, broadcasts, nudges and roster audits are in `creator-management`.
 
 **Payouts (read only)** (`references/payouts.md`): `get_payout_counts` → `list_due_payouts` / `list_upcoming_payouts` / `list_paid_payouts` → `get_payout_breakdown` for one paid payout; `calculate_payout_preview` for one creator and window only.
 

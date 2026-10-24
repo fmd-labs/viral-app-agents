@@ -10,7 +10,7 @@
     {
       "name": "viral-app",
       "source": "./plugins/viral-app",
-      "description": "Connect viral.app to your agent: OAuth MCP server with 100+ tools for UGC analytics, account and video tracking, tags, Creator Hub campaigns, briefs, job postings, applications, creator chat and payouts, the viral video library and live TikTok/Instagram/YouTube lookups, with interactive cards and event automations, plus five workflow skills."
+      "description": "Connect viral.app to your agent: OAuth MCP server with 100+ tools for UGC analytics, account and video tracking, tags, Creator Hub campaigns, briefs, job postings, applications, creator chat and payouts, the viral video library and live TikTok/Instagram/YouTube lookups, with interactive cards and event automations, plus seven workflow skills."
     }
   ]
 }
