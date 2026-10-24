@@ -65,6 +65,8 @@ Common filters: `dateRange`, `platforms`, `accounts`, `projects`, `tags` or `tag
 - `list_briefs`, `get_brief`: briefs, their markdown, linked campaigns, samples, and how many creators a notify would reach.
 - `create_brief`, `update_brief` (reach people with `notify: true`): markdown in `contentMarkdown`.
 - `set_brief_campaigns`: reconcile which campaigns use the brief.
+- `set_brief_audience`, `update_brief_creators`: who reads the brief (everyone, campaigns, single creators); `notify: true` messages the creators it newly reaches.
+- `get_brief_read_status`: who read which version.
 - `add_brief_sample_videos`: append tracked videos or viral-library videos (`libraryVideoId`) as samples.
 - `delete_brief`: permanent; silent.
 

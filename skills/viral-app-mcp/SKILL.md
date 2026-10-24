@@ -1,6 +1,6 @@
 ---
 name: viral-app-mcp
-description: Core guide to the viral.app MCP server (UGC and creator-marketing analytics for TikTok, Instagram, YouTube, Facebook and Snapchat, plus the Creator Hub). Use whenever a task touches viral.app data or actions, to connect and authenticate the server, pick among its 100+ tools, follow the credit quote-then-confirm flow, get ids, units and date formats right, know what MCP cannot do, and load the specialized skill for the job (ugc-reporting, creator-campaigns, viral-research, ugc-automations). Not needed for general social-media advice that uses no viral.app data.
+description: Core guide to the viral.app MCP server (UGC and creator-marketing analytics for TikTok, Instagram, YouTube, Facebook and Snapchat, plus the Creator Hub). Use whenever a task touches viral.app data or actions, to connect and authenticate the server, pick among its 100+ tools, follow the credit quote-then-confirm flow, get ids, units and date formats right, know what MCP cannot do, and load the specialized skill for the job (ugc-reporting, creator-briefs, creator-campaigns, viral-research, ugc-automations). Not needed for general social-media advice that uses no viral.app data.
 ---
 
 # viral.app MCP
@@ -18,7 +18,8 @@ viral.app tracks UGC performance across TikTok, Instagram, YouTube, Facebook and
 | The user wants to | Load |
 | --- | --- |
 | Know how content, accounts, creators or campaigns performed; a weekly or monthly report; a recurring report | `ugc-reporting` |
-| Write a brief, create or change a campaign, assign creators, post a job, answer applications, chat with creators, check payouts | `creator-campaigns` |
+| Write a brief or find sample videos for one | `creator-briefs` |
+| Create or change a campaign, assign creators, post a job, answer applications, chat with creators, check payouts | `creator-campaigns` |
 | Find what works in a niche, hooks, formats, similar videos, analyze a video's content | `viral-research` |
 | Be alerted or have the agent act when something happens (new application, message, payout due, milestone); MCP Events (`events/list`) | `ugc-automations` |
 
@@ -32,7 +33,7 @@ viral.app tracks UGC performance across TikTok, Instagram, YouTube, Facebook and
 
 - **Track first, then analyze.** Tracking tools add accounts and videos, analytics tools read their history, `live_*` tools fetch current platform data without tracking it.
 - **Credits: quote, then confirm.** Live lookups (`live_*`), refreshes (`refresh_*`) and `analyze_video` spend credits. Call without `confirm` first: nothing is spent and you get `estimated_credits` and `credits_remaining`. Show the quote, get explicit approval, then call again with the same arguments plus `confirm: true`. Never send `confirm: true` first. On `RATE_LIMITED`, stop and tell the user.
-- **Anything that reaches people needs informed approval.** Tools that email, message or notify creators (`create_creator` with invite, `invite_creator`, `send_chat_message`, `reply_to_application`, `assign_creators_to_campaign`, brief writes with `notify: true`) are marked open-world: state the recipients and the exact text before calling. Set `notify: true` only when the user asked to notify.
+- **Anything that reaches people needs informed approval.** Tools that email, message or notify creators (`create_creator` with invite, `invite_creator`, `send_chat_message`, `reply_to_application`, `assign_creators_to_campaign`, brief writes with `notify: true`) are marked open-world: state the recipients and the exact text before calling. Set `notify: true` only when the user agreed to notify: ask once, and only when someone would receive it.
 - **Campaign writes need a preview.** Run `preview_campaign`, show its sentences and warnings, then pass its `previewHash` to `create_campaign` or `update_campaign`. Without it the call fails with `PREVIEW_REQUIRED`.
 - **Content is markdown.** Briefs take `contentMarkdown`, job postings `bodyMarkdown` and `challengeBriefMarkdown`. Show the full draft before writing.
 - **Jobs start as drafts.** `create_job` never publishes; `set_job_status` with `"public"` does, only after the user agrees.

@@ -1,6 +1,6 @@
 # viral-app-agents
 
-Official [viral.app](https://viral.app) plugins and install shortcuts for coding agents and chat apps. One install connects your agent to the viral.app MCP server: 100+ tools for UGC analytics, account and video tracking, tags and tag workflows, the Creator Hub (campaigns, briefs, job postings, applications, creator chat, payouts), the viral video library, and live TikTok/Instagram/YouTube/Facebook lookups. Plugins also bring [five skills](#skills) that teach the agent the workflows.
+Official [viral.app](https://viral.app) plugins and install shortcuts for coding agents and chat apps. One install connects your agent to the viral.app MCP server: 100+ tools for UGC analytics, account and video tracking, tags and tag workflows, the Creator Hub (campaigns, briefs, job postings, applications, creator chat, payouts), the viral video library, and live TikTok/Instagram/YouTube/Facebook lookups. Plugins also bring [six skills](#skills) that teach the agent the workflows.
 
 The MCP server lives at `https://viral.app/api/mcp` (streamable HTTP, OAuth). You need a viral.app account with API access. Manage everything at [viral.app/app/org/api/agents](https://viral.app/app/org/api/agents).
 
@@ -253,13 +253,14 @@ Point the client at `https://viral.app/api/mcp` with streamable HTTP and OAuth. 
 
 ## Skills
 
-Plugins bundle five skills. Agents load them on demand, and each keeps longer material in a `references/` folder next to it.
+Plugins bundle six skills. Agents load them on demand, and each keeps longer material in a `references/` folder next to it.
 
 | Skill | Use it for |
 | --- | --- |
 | `viral-app-mcp` | The core guide: connecting and auth, the credit quote-then-confirm flow, rules for writes that reach creators, ids and units, what MCP cannot do, and which skill to load next |
 | `ugc-reporting` | Weekly or monthly UGC reports, KPI and leaderboard recipes with period-over-period change, cards in Claude and ChatGPT, Slack summaries, recurring reports through scheduled tasks or a ChatGPT page |
-| `creator-campaigns` | Creator Hub end to end: briefs in markdown, campaigns with the preview step, creator assignment, job drafts and publishing, applications, creator chat, and payout reads |
+| `creator-briefs` | Creator briefs the way viral.app's Copilot writes them: the product, proven sample videos from the viral library or your own videos, the brief's structure, numbered samples, who reads it and whether to notify; MCP or the REST API with an API key |
+| `creator-campaigns` | Creator Hub end to end: campaigns with the preview step, creator assignment, job drafts and publishing, applications, creator chat, and payout reads |
 | `viral-research` | The viral video library, similar videos, hook and scene breakdowns, AI analysis of tracked videos, live lookups, and turning findings into hooks and a brief |
 | `ugc-automations` | "Watch for X and do Y": MCP Events in ChatGPT, polling fallbacks for other clients, latency per event, and handling untrusted creator text |
 
@@ -280,7 +281,7 @@ Plugins bundle five skills. Agents load them on demand, and each keeps longer ma
 | `plugins/viral-app/.codex-plugin/plugin.json` | Codex plugin manifest |
 | `plugins/viral-app/.cursor-plugin/plugin.json` | Cursor plugin manifest |
 | `plugins/viral-app/.mcp.json` | Claude-format MCP config (Codex, Factory, Grok Build; Claude Code merges it with the inline entry) |
-| `plugins/viral-app/skills/` | The five skills (canonical copy) |
+| `plugins/viral-app/skills/` | The six skills (canonical copy) |
 | `scripts/sync-skills.sh` | Copies `plugins/viral-app/skills/` to `skills/`; `--check` fails when they differ |
 | `scripts/build-chatgpt-package.sh` | Builds `dist/viral-app-chatgpt.zip` for OpenAI's plugin dashboard (Upload new version): the Codex manifest, `.mcp.json`, skills and assets of `plugins/viral-app`, checked against OpenAI's package rules, without the Claude and Cursor manifests |
 | `plugins/viral-app/assets/` | Plugin logo (`logo.svg`, `logo.png` at 400x400) |

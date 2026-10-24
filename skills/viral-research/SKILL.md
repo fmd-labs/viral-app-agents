@@ -34,7 +34,7 @@ The library is curated performance UGC (TikTok and Instagram Reels, mostly app a
 
 1. Cluster what works into 3 to 5 patterns (format + hook + proof), each with 2 or 3 example videos and why they work.
 2. Write hooks for the user's product per pattern: the first spoken line, the on-screen text, and the first visual.
-3. Draft a brief in markdown (template in `references/hooks-to-brief.md`). Hand off to `creator-campaigns`: `create_brief` with `notify: false`, then `add_brief_sample_videos` with the chosen library videos (`libraryVideoId`, `orgrsv_` ids) and labels such as "Hook: POV notification".
+3. Hand off to `creator-briefs` to write the brief from the chosen patterns and example videos, attach them as labeled samples and decide who reads it.
 
 ## Presenting
 

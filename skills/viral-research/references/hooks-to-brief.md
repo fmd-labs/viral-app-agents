@@ -24,32 +24,6 @@ For each of 3 to 5 patterns:
 3. Product moment or proof (6 to 20 s)
 4. Payoff and call to action (last 3 to 5 s)
 
-## Brief template (markdown for `create_brief`)
+## The brief
 
-```markdown
-## The product
-<What it is and who it is for, in two sentences.>
-
-## Formats that work right now
-1. **<Pattern name>**: <why it works>. Example hooks:
-   - "<hook 1>"
-   - "<hook 2>"
-2. **<Pattern name>**: ...
-
-## What to make
-- Length: <15 to 30> seconds, vertical
-- Hook in the first 2 seconds
-- Show <the product moment> on screen
-
-## Must include
-- <product name said once>
-- <one key benefit>
-
-## Don't
-- <claims to avoid, competitor names, prices>
-
-## Sample videos
-See the numbered examples below this brief.
-```
-
-Then, with approval: `create_brief` (`notify: false`), `add_brief_sample_videos` with the chosen `libraryVideoId`s and short labels (max 60 chars, for example "Hook: pain-point callout"), and link it to a campaign via `set_brief_campaigns` or `update_campaign` with `briefId`. Notify creators only when the user says so.
+The brief itself (structure, length, variables, sample labels, audience) is `creator-briefs`: the patterns above feed its "How to build it", and their example videos become its numbered samples. A brief gives creators direction, not a script: the outline above becomes its story beats, the hooks its hook directions.
