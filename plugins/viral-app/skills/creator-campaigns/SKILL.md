@@ -1,6 +1,6 @@
 ---
 name: creator-campaigns
-description: Run viral.app Creator Hub workflows end to end. Link briefs to campaigns (writing one is creator-briefs), create, change, end or copy campaigns through the required preview step, assign creators, unassign a creator who asked to leave, draft and publish job postings, review and answer applications, and read payouts (due, upcoming, paid, breakdowns). Use for any campaign, brief link, job posting, application or payout question in viral.app; the creator roster and chat are creator-management. Starting or canceling payouts and Jobs Discovery are dashboard-only.
+description: Run viral.app Creator Hub workflows end to end. Link briefs to campaigns (writing one is creator-briefs), create, change, end or copy campaigns through the required preview step, assign and unassign creators, draft and publish job postings, review and answer applications, and read payouts (due, upcoming, paid, breakdowns). Use for any campaign, brief link, job posting, application or payout question in viral.app; the creator roster and chat are creator-management. Starting or canceling payouts and Jobs Discovery are dashboard-only.
 ---
 
 # Creator Hub: campaigns, jobs, applications, payouts
@@ -27,7 +27,7 @@ Load `viral-app-mcp` first if its conventions (ids, units, credits) are not in c
 
 **Assign creators**: `list_creators` → `get_assignment_options` → ask the start question when needed → one `assign_creators_to_campaign` call for all creators.
 
-**Unassign a creator who asked to leave** (`references/campaigns.md` for the end bases, outcomes and refusals): only that creator, in their own thread → `preview_unassign_creators` (`endBasis` `today`, `current` or `next`) → show them the end date, earnings, `outcome` and `chatMessage` → their yes → `unassign_creators_from_campaign` with the `previewHash`. `blockedBy` or `RATE_LIMITED`: stop and point to the app. Switching creators to another campaign stays in the app.
+**Unassign creators** (`references/campaigns.md` for who may ask, the end bases, outcomes and refusals): only on a request you were given, the user naming creators or a creator asking to leave in their own thread → `preview_unassign_creators` (`endBasis` `today`, `current` or `next`) → show whoever asked the end date, earnings, `outcome` and `chatMessage` → their yes → `unassign_creators_from_campaign` with the `previewHash`. `blockedBy` or `RATE_LIMITED`: stop and point to the app. Switching creators to another campaign stays in the app.
 
 **Job posting** (`references/job-posting.md` for the guided questions, benchmark lines, how to write the posting and the publish cap; `references/jobs-and-applications.md` for the fields): `create_job` (draft) → show it → `set_job_status` `"public"` on approval. Edits: `get_job` → `update_job` with every field.
 

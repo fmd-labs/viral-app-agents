@@ -56,8 +56,8 @@ Common filters: `dateRange`, `platforms`, `accounts`, `projects`, `tags` or `tag
 - `preview_campaign`: dry run that returns sentences, warnings and the `previewHash`; required before create and update.
 - `create_campaign`, `update_campaign`, `reactivate_campaign`.
 - `get_campaign_end_context`, `end_campaign`: end dates to offer and consent for running assignments.
-- `preview_unassign_creators`: dry run for taking a creator who asked to leave off their campaign: per creator the end date, `outcome` (`ends`, `extends`, `deleted`, `unchanged`), earnings (minor units), `blockedBy`, the chat message, and the `previewHash`.
-- `unassign_creators_from_campaign` (reaches people): only with that `previewHash` and after the creator confirmed; `endBasis` `today`, `current` or `next`, at most 5 creators per call and 20 per organization a day, never a scheduled end moved later. Rules: `creator-campaigns/references/campaigns.md`.
+- `preview_unassign_creators`: dry run for taking creators off their campaign (the user names them, or a creator asks to leave): per creator the end date, `outcome` (`ends`, `extends`, `deleted`, `unchanged`), earnings (minor units), `blockedBy`, the chat message, and the `previewHash`.
+- `unassign_creators_from_campaign` (reaches people): only with that `previewHash` and after whoever made the request confirmed; `endBasis` `today`, `current` or `next`, at most 5 creators per call and 20 per organization a day, never a scheduled end moved later. Rules: `creator-campaigns/references/campaigns.md`.
 - `get_assignment_options`, `assign_creators_to_campaign` (reaches people): start options, then one call for many creators.
 - `get_campaign_kpis`: campaign views, posted videos, spend and CPM, with previous-period comparison for `scope: "dateRange"`.
 - `get_campaign_activity`: per-creator pace (`onSchedule`, `runningTight`, `overdue`) for the current billing period.
