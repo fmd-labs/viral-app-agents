@@ -20,7 +20,7 @@ viral.app tracks UGC performance across TikTok, Instagram, YouTube, Facebook and
 | Know how content, accounts, creators or campaigns performed; a weekly or monthly report; a recurring report | `ugc-reporting` |
 | Write a brief or find sample videos for one | `creator-briefs` |
 | Add creators (one or a CSV), invite them, link their accounts, chat, broadcast, nudge, audit the roster | `creator-management` |
-| Create or change a campaign, assign creators, post a job, answer applications, check payouts | `creator-campaigns` |
+| Create or change a campaign, assign creators or unassign one who asked to leave, post a job, answer applications, check payouts | `creator-campaigns` |
 | Find what works in a niche, hooks, formats, similar videos, analyze a video's content | `viral-research` |
 | Be alerted or have the agent act when something happens (new application, message, payout due, milestone); MCP Events (`events/list`) | `ugc-automations` |
 
@@ -35,8 +35,8 @@ viral.app tracks UGC performance across TikTok, Instagram, YouTube, Facebook and
 
 - **Track first, then analyze.** Tracking tools add accounts and videos, analytics tools read their history, `live_*` tools fetch current platform data without tracking it.
 - **Credits: quote, then confirm.** Live lookups (`live_*`), refreshes (`refresh_*`) and `analyze_video` spend credits. Call without `confirm` first: nothing is spent and you get `estimated_credits` and `credits_remaining`. Show the quote, get explicit approval, then call again with the same arguments plus `confirm: true`. Never send `confirm: true` first. On `RATE_LIMITED`, stop and tell the user.
-- **Anything that reaches people needs informed approval.** Tools that email, message or notify creators (`create_creator` with invite, `invite_creator`, `send_chat_message`, `reply_to_application`, `assign_creators_to_campaign`, brief writes with `notify: true`) are marked open-world: state the recipients and the exact text before calling. Set `notify: true` only when the user agreed to notify: ask once, and only when someone would receive it.
-- **Campaign writes need a preview.** Run `preview_campaign`, show its sentences and warnings, then pass its `previewHash` to `create_campaign` or `update_campaign`. Without it the call fails with `PREVIEW_REQUIRED`.
+- **Anything that reaches people needs informed approval.** Tools that email, message or notify creators (`create_creator` with invite, `invite_creator`, `send_chat_message`, `reply_to_application`, `assign_creators_to_campaign`, `unassign_creators_from_campaign`, brief writes with `notify: true`) are marked open-world: state the recipients and the exact text before calling. Set `notify: true` only when the user agreed to notify: ask once, and only when someone would receive it.
+- **Campaign writes need a preview.** Run `preview_campaign`, show its sentences and warnings, then pass its `previewHash` to `create_campaign` or `update_campaign`. Without it the call fails with `PREVIEW_REQUIRED`. Unassigning works the same way (`preview_unassign_creators`, then `unassign_creators_from_campaign` with its hash), only for the creator who asked to leave: `creator-campaigns`.
 - **Content is markdown.** Briefs take `contentMarkdown`, job postings `bodyMarkdown` and `challengeBriefMarkdown`. Show the full draft before writing.
 - **Jobs start as drafts.** `create_job` never publishes; `set_job_status` with `"public"` does, only after the user agrees.
 - **Tracking is asynchronous.** After `add_tracked_accounts` or `add_tracked_videos`, data arrives over the next minutes. Do not poll in a loop; say it is syncing.

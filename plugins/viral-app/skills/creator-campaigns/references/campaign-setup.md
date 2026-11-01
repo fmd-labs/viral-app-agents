@@ -91,5 +91,6 @@ One next step at a time:
 | End, reactivate | `get_campaign_end_context`, `end_campaign`, `reactivate_campaign` | `GET /campaigns/{id}/end-context`, `POST /campaigns/{id}/end`, `POST /campaigns/{id}/reactivate` |
 | Custom rates | `preview_creator_custom_rates`, `set_creator_custom_rates` | `POST /campaigns/{id}/custom-rates/validate`, `PUT /campaigns/{id}/custom-rates/{creatorId}`; read with `GET` and reset with `DELETE` on the same path |
 | Assign creators | `get_assignment_options`, `assign_creators_to_campaign` | `GET /creators/campaigns/assign-options`, `POST /creators/campaigns/assign` |
+| Unassign a creator who asked to leave | `preview_unassign_creators`, `unassign_creators_from_campaign` | `POST /creators/campaigns/unassign/preview`, `POST /creators/campaigns/unassign` |
 
-Over REST `previewHash` is optional but recommended: with it, a write that differs from the dry run is refused (409 `CAMPAIGN_PREVIEW_MISMATCH`, `CUSTOM_RATES_PREVIEW_MISMATCH`). Base URL, keys and the sub-org header: `viral-app-mcp/references/rest-api.md`.
+Over REST `previewHash` is optional but recommended: with it, a write that differs from the dry run is refused (409 `CAMPAIGN_PREVIEW_MISMATCH`, `CUSTOM_RATES_PREVIEW_MISMATCH`, `UNASSIGN_PREVIEW_MISMATCH`). REST takes any end basis and more creators, and has no daily cap; an agent unassigning over REST keeps to the MCP rules anyway (`campaigns.md`, Unassign). Base URL, keys and the sub-org header: `viral-app-mcp/references/rest-api.md`.
