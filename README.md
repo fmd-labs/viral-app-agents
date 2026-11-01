@@ -261,7 +261,7 @@ Plugins bundle seven skills. Agents load them on demand, and each keeps longer m
 | `ugc-reporting` | Weekly or monthly UGC reports, KPI and leaderboard recipes with period-over-period change, cards in Claude and ChatGPT, Slack summaries, recurring reports through scheduled tasks or a ChatGPT page |
 | `creator-briefs` | Creator briefs the way viral.app's Copilot writes them: the product, proven sample videos from the viral library or your own videos, the brief's structure, numbered samples, who reads it and whether to notify; MCP or the REST API with an API key |
 | `creator-management` | The creator roster day to day: adding creators one by one or from a CSV, invitations, linking social accounts, direct and group chats, broadcasts, nudges for stuck creators, and roster audits; MCP or REST |
-| `creator-campaigns` | Creator Hub end to end: guided campaign setup with benchmarks and the preview step, pay changes and custom rates, creator assignment, job postings (writing, benchmarks, publishing), applications, and payout reads |
+| `creator-campaigns` | Creator Hub end to end: guided campaign setup with benchmarks and the preview step, pay changes and custom rates, creator assignment and unassigning, job postings (writing, benchmarks, publishing), applications, and payout reads |
 | `viral-research` | The viral video library, similar videos, hook and scene breakdowns, AI analysis of tracked videos, live lookups, and turning findings into hooks and a brief |
 | `ugc-automations` | "Watch for X and do Y": MCP Events in ChatGPT, polling fallbacks for other clients, latency per event, and handling untrusted creator text |
 
